@@ -1,7 +1,10 @@
 package dev.fayzullokh.roombooking.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.fayzullokh.roombooking.dtos.AppErrorDTO;
 import dev.fayzullokh.roombooking.entities.User;
 import dev.fayzullokh.roombooking.repositories.UserRepository;
+import jakarta.servlet.ServletOutputStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +19,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -30,6 +35,7 @@ import java.util.List;
 public class SecurityConfig  {
     private final UserDetailsService userDetailsService;
     private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
 
     @Bean
@@ -63,7 +69,7 @@ public class SecurityConfig  {
                 .authenticationEntryPoint(authenticationEntryPoint())
                 .accessDeniedHandler(accessDeniedHandler())
                 .and()
-                .addFilterBefore(new JwtTokenFilter(jwtTokenUtil, userDetailsService()), UsernamePasswordAuthenticationFilter.class)
+//                .addFilterBefore(new JwtTokenFilter(jwtTokenUtil, userDetailsService()), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
     @Bean
@@ -76,7 +82,7 @@ public class SecurityConfig  {
     public UserDetailsService userDetailsService() {
         return username -> {
             User customer = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-            return new UserDetails(customer);
+            return new CustomUserDetails(customer);
         };
     }
 
@@ -102,5 +108,33 @@ public class SecurityConfig  {
     @Bean
     public AuthenticationManager authenticationManager() {
         return new ProviderManager(authenticationProvider());
+    }
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return (request, response, accessDeniedException) -> {
+            accessDeniedException.printStackTrace();
+            String errorPath = request.getRequestURI();
+            String errorMessage = accessDeniedException.getMessage();
+            int errorCode = 403;
+            AppErrorDTO appErrorDTO = new AppErrorDTO(errorMessage, errorPath, errorCode);
+            response.setStatus(errorCode);
+            ServletOutputStream outputStream = response.getOutputStream();
+            objectMapper.writeValue(outputStream, appErrorDTO);
+        };
+    }
+
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, authException) -> {
+            authException.printStackTrace();
+            String errorPath = request.getRequestURI();
+            String errorMessage = authException.getMessage();
+            int errorCode = 401;
+            AppErrorDTO appErrorDTO = new AppErrorDTO(errorMessage, errorPath, errorCode);
+            response.setStatus(errorCode);
+            ServletOutputStream outputStream = response.getOutputStream();
+            objectMapper.writeValue(outputStream, appErrorDTO);
+        };
     }
 }

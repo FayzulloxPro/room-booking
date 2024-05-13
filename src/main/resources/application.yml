@@ -1,0 +1,31 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # it should be replaced to update in production
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  datasource:
+    driverClassName: org.postgresql.Driver
+    username: postgres
+    password: 123
+    url: jdbc:postgresql://localhost:5432/room_booking
+
+server:
+  port: 8888
+
+jwt:
+  access:
+    token:
+      expiry: 6000000
+      secret:
+        key: 357638792F423F4528482B4D6250655368566D597133743677397A24432646294A404E635266546A576E5A7234753778214125442A472D4B6150645367566B58
+  refresh:
+    token:
+      expiry: 864000000
+      secret:
+        key: 7134743777217A25432A462D4A614E645267556B58703272357538782F413F44
