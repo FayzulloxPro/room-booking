@@ -15,6 +15,8 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -23,7 +25,11 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.session.ConcurrentSessionControlAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -31,6 +37,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 // SecurityConfig
 @Configuration
@@ -43,11 +51,11 @@ public class SecurityConfig {
             "/css/**",
             "/js/**",
             "/img/**",
-            "/home",
             "/auth/login",
             "/auth/register",
             "/auth/forget-password",
-            "/auth/reset-password"
+            "/auth/reset-password",
+            "/home" // Add /home to the WHITE_LIST
     };
 
     @Bean
@@ -68,9 +76,23 @@ public class SecurityConfig {
                                 .loginProcessingUrl("/auth/login")
                                 .usernameParameter("uname")
                                 .passwordParameter("pswd")
-                                .defaultSuccessUrl("/home", false)
+                                .defaultSuccessUrl("/home")
                                 .failureHandler(authenticationFailureHandler)
                 )
+                .sessionManagement()
+                .maximumSessions(1)
+                .sessionRegistry(sessionRegistry())
+                .and()
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .invalidSessionUrl("/login?expired=true")
+                .sessionFixation().newSession()
+                .sessionAuthenticationErrorUrl("/login?error=true")
+                .sessionAuthenticationFailureHandler(new SimpleUrlAuthenticationFailureHandler("/login?error=true"))
+                .sessionAuthenticationStrategy(sessionAuthenticationStrategy())
+                .maximumSessions(1)
+                .expiredUrl("/login?expired=true")
+                .and()
+                .and()
                 .logout(httpSecurityLogoutConfigurer ->
                         httpSecurityLogoutConfigurer
                                 .logoutUrl("/auth/logout")
@@ -79,6 +101,9 @@ public class SecurityConfig {
                                 .logoutRequestMatcher(new AntPathRequestMatcher("/auth/logout", "POST"))
 
                 )
+                .exceptionHandling()
+                .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/auth/login"))
+                .and()
                 .userDetailsService(userDetailsService)
                 .rememberMe(httpSecurityRememberMeConfigurer ->
                         httpSecurityRememberMeConfigurer
@@ -96,60 +121,21 @@ public class SecurityConfig {
     }
 
     @Bean
+    public ConcurrentSessionControlAuthenticationStrategy sessionAuthenticationStrategy() {
+        ConcurrentSessionControlAuthenticationStrategy strategy = new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry());
+        strategy.setMaximumSessions(1);
+        strategy.setExceptionIfMaximumExceeded(false);
+        return strategy;
+    }
+
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration source = new CorsConfiguration();
-        source.setAllowedOriginPatterns(List.of("*"));
-        source.setAllowedHeaders(List.of("*"));
-        source.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
-        UrlBasedCorsConfigurationSource source1 = new UrlBasedCorsConfigurationSource();
-        source1.registerCorsConfiguration("/**", source);
-        return source1;
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setPasswordEncoder(passwordEncoder());
-        authenticationProvider.setUserDetailsService(userDetailsService);
-        return authenticationProvider;
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager() {
-        return new ProviderManager(authenticationProvider());
-    }
-
-    @Bean
-    public AccessDeniedHandler accessDeniedHandler() {
-        return (request, response, accessDeniedException) -> {
-            accessDeniedException.printStackTrace();
-            String errorPath = request.getRequestURI();
-            String errorMessage = accessDeniedException.getMessage();
-            int errorCode = 403;
-            AppErrorDTO appErrorDTO = new AppErrorDTO(errorMessage, errorPath, errorCode);
-            response.setStatus(errorCode);
-            ServletOutputStream outputStream = response.getOutputStream();
-            objectMapper.writeValue(outputStream, appErrorDTO);
-        };
-    }
-
-    @Bean
-    public AuthenticationEntryPoint authenticationEntryPoint() {
-        return (request, response, authException) -> {
-            authException.printStackTrace();
-            String errorPath = request.getRequestURI();
-            String errorMessage = authException.getMessage();
-            int errorCode = 401;
-            AppErrorDTO appErrorDTO = new AppErrorDTO(errorMessage, errorPath, errorCode);
-            response.setStatus(errorCode);
-            ServletOutputStream outputStream = response.getOutputStream();
-            objectMapper.writeValue(outputStream, appErrorDTO);
-        };
-    }
 }

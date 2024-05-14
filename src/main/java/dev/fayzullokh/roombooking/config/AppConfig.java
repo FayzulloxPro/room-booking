@@ -1,24 +1,33 @@
 package dev.fayzullokh.roombooking.config;
 
+import dev.fayzullokh.roombooking.dtos.UserRegisterDTO;
+import dev.fayzullokh.roombooking.entities.User;
+import dev.fayzullokh.roombooking.services.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationContext;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
-import org.thymeleaf.templatemode.TemplateMode;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class AppConfig {
-    private final ApplicationContext applicationContext;
+
+    private final UserService userService;
+
     @Bean
-    public SpringResourceTemplateResolver templateResolver() {
-        SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
-        templateResolver.setApplicationContext(this.applicationContext);
-        templateResolver.setPrefix("classpath:templates/");
-        templateResolver.setSuffix(".html");
-        templateResolver.setTemplateMode(TemplateMode.HTML);
-        templateResolver.setCacheable(false);
-        return templateResolver;
+    public CommandLineRunner createAdmin() {
+        return (args) -> {
+            User user1 = userService.getUser("admin");
+            if (user1 != null) return;
+            User user = userService.saveUser(new UserRegisterDTO(
+                    "admin",
+                    "admin",
+                    "admin",
+                    "admin"
+            ));
+            log.info("Admin created: {}", user);
+        };
     }
 }

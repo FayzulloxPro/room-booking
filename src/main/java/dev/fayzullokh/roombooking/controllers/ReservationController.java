@@ -17,18 +17,12 @@ import java.util.List;
 public class ReservationController {
     private final RoomRepository roomRepository;
 
-    @GetMapping("/rooms")
-    public String showAvailableRooms(Model model) {
-        List<Room> availableRooms = roomRepository.findByAvailableTrue();
-        model.addAttribute("rooms", availableRooms);
-        return "rooms";
-    }
-
+/*
     @PostMapping("/reserve")
     public String reserveRoom(@RequestParam("roomId") Long roomId,
                               @RequestParam("startDate") LocalDate startDate,
                               @RequestParam("endDate") LocalDate endDate) {
         // process reservation
         return "redirect:/rooms";
-    }
+    }*/
 }

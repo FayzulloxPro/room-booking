@@ -14,10 +14,11 @@ import java.time.LocalDateTime;
 @ToString
 @Builder
 @Entity(name = "users")
-public class User extends BaseEntity {
+public class User extends BaseEntityAudit {
 
-
-    @Column(name = "username", unique = true, nullable = false)
+    @Column(name = "chat_id")
+    private String chatId;    //if chat id is not null then user is logged in his account in telegram with this chat id
+    @Column(name = "username", unique = true, nullable = false, updatable = false)
     private String username;
     @Column(name = "password")
     private String password; // hashed
@@ -29,6 +30,9 @@ public class User extends BaseEntity {
     private Role role;
 
     private LocalDateTime lastLogin;
+
+    @Column(name = "password_changed")
+    private boolean passwordChanged;
 
     public boolean isAdmin() {
         return role == Role.ADMIN;

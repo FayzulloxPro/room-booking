@@ -1,7 +1,7 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: create-drop  # it should be replaced to update in production
+      ddl-auto: update  # it should be replaced to update in production
     show-sql: false
     properties:
       hibernate:

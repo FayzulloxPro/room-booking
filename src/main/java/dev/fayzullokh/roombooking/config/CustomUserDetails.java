@@ -2,6 +2,7 @@ package dev.fayzullokh.roombooking.config;
 
 
 import dev.fayzullokh.roombooking.entities.User;
+import lombok.Getter;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -12,13 +13,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class CustomUserDetails implements org.springframework.security.core.userdetails.UserDetails {
+    @Getter
     private final User user;
     private Long id;
-    private String email;
+    private String username;
 
     public CustomUserDetails(@NonNull User user) {
         this.user = user;
-        this.email = user.getEmail();
+        this.username = user.getUsername();
         this.id = user.getId();
     }
 
@@ -31,9 +33,7 @@ public class CustomUserDetails implements org.springframework.security.core.user
         }
         return authorities;
     }
-    public User getUser(){
-        return user;
-    }
+
     @Override
     public String getPassword() {
         return user.getPassword();
@@ -41,7 +41,7 @@ public class CustomUserDetails implements org.springframework.security.core.user
 
     @Override
     public String getUsername() {
-        return email;
+        return username;
     }
 
     @Override

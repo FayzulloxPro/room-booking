@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope("prototype")
-public class UserSession {
+public class SessionUser {
     public User getUser() {
         SecurityContext context = SecurityContextHolder.getContext();
         Authentication authentication = context.getAuthentication();
