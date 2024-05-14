@@ -6,6 +6,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -29,6 +30,9 @@ public class CustomUserDetails implements org.springframework.security.core.user
             authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         }
         return authorities;
+    }
+    public User getUser(){
+        return user;
     }
     @Override
     public String getPassword() {
@@ -62,5 +66,9 @@ public class CustomUserDetails implements org.springframework.security.core.user
 
     public Long getId() {
         return user.getId();
+    }
+
+    public void setLastLogin(LocalDateTime now) {
+        user.setLastLogin(now);
     }
 }

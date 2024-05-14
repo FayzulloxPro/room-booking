@@ -5,6 +5,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,7 +28,10 @@ public class User extends BaseEntity {
 
     private Role role;
 
+    private LocalDateTime lastLogin;
+
     public boolean isAdmin() {
         return role == Role.ADMIN;
     }
+
 }

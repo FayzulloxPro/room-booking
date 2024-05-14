@@ -22,69 +22,84 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 // SecurityConfig
 @Configuration
 @RequiredArgsConstructor
-public class SecurityConfig  {
-    private final UserDetailsService userDetailsService;
-    private final UserRepository userRepository;
+public class SecurityConfig {
     private final ObjectMapper objectMapper;
-
+    private final AuthenticationFailureHandler authenticationFailureHandler;
+    private final CustomUserDetailsService userDetailsService;
+    public static final String[] WHITE_LIST = {
+            "/css/**",
+            "/js/**",
+            "/img/**",
+            "/home",
+            "/auth/login",
+            "/auth/register",
+            "/auth/forget-password",
+            "/auth/reset-password"
+    };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.
-                cors().configurationSource(corsConfigurationSource())
-                .and()
-                .csrf().disable()
-                .authorizeHttpRequests()
-                .requestMatchers("/swagger-ui.html",
-                        "/swagger-ui*/**",
-                        "/swagger-ui*/*swagger-initializer.js",
-                        "/v3/api-docs*/**",
-                        "/error",
-                        "/webjars/**",
-                        "/api/open",
-                        "/api/auth/**",
-                        "/api/url/get/**"
 
-                        /*,
-                        "/**" // only for test*/
+        http.csrf().disable()
+
+                .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
+                        authorizationManagerRequestMatcherRegistry
+                                .requestMatchers(WHITE_LIST)
+                                .permitAll()
+                                .anyRequest()
+                                .authenticated()
                 )
-                .permitAll()
-                .anyRequest()
-                .fullyAuthenticated()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .exceptionHandling()
-                .authenticationEntryPoint(authenticationEntryPoint())
-                .accessDeniedHandler(accessDeniedHandler())
-                .and()
-//                .addFilterBefore(new JwtTokenFilter(jwtTokenUtil, userDetailsService()), UsernamePasswordAuthenticationFilter.class)
-                .build();
+                .formLogin(httpSecurityFormLoginConfigurer ->
+                        httpSecurityFormLoginConfigurer
+                                .loginPage("/auth/login")
+                                .loginProcessingUrl("/auth/login")
+                                .usernameParameter("uname")
+                                .passwordParameter("pswd")
+                                .defaultSuccessUrl("/home", false)
+                                .failureHandler(authenticationFailureHandler)
+                )
+                .logout(httpSecurityLogoutConfigurer ->
+                        httpSecurityLogoutConfigurer
+                                .logoutUrl("/auth/logout")
+                                .clearAuthentication(true)
+                                .deleteCookies("JSESSIONID", "rememberME")
+                                .logoutRequestMatcher(new AntPathRequestMatcher("/auth/logout", "POST"))
+
+                )
+                .userDetailsService(userDetailsService)
+                .rememberMe(httpSecurityRememberMeConfigurer ->
+                        httpSecurityRememberMeConfigurer
+                                .rememberMeParameter("rememberMe")
+                                .key("EWT$@WEFYG%H$ETGE@R!T#$HJYYT$QGRWHNJU%$TJRUYRHFRYFJRYUYRHD")
+                                .tokenValiditySeconds(24 * 60 * 60)// default is 30 minutes
+                                .rememberMeCookieName("rememberME")
+                                .authenticationSuccessHandler((httpServletRequest, httpServletResponse, authentication) -> {
+                                    CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(authentication.getName());
+                                    userDetails.setLastLogin(LocalDateTime.now());
+                                    userDetailsService.save(userDetails.getUser());
+                                })
+                );
+        return http.build();
     }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return username -> {
-            User customer = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-            return new CustomUserDetails(customer);
-        };
-    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -101,7 +116,7 @@ public class SecurityConfig  {
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
         authenticationProvider.setPasswordEncoder(passwordEncoder());
-        authenticationProvider.setUserDetailsService(userDetailsService());
+        authenticationProvider.setUserDetailsService(userDetailsService);
         return authenticationProvider;
     }
 
