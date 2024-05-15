@@ -25,6 +25,7 @@
                 <th>Min Seats</th>
                 <th>Open Time</th>
                 <th>Close Time</th>
+                <th></th>
             </tr>
             </thead>
             <tbody>
@@ -64,20 +65,53 @@
             </div>
             <div class="modal-body">
                 <!-- Form to create a new room -->
-                <form th:action="@{/rooms}" th:object="${roomDto}" method="post">
+                <!--<form th:action="@{/rooms}" th:object="${roomDto}" method="post">
                     <div class="form-group">
                         <label for="roomNumber">Room Number:</label>
                         <input type="text" class="form-control" id="roomNumber" th:field="*{roomNumber}" required>
                         <small th:if="${#fields.hasErrors('roomNumber')}" th:errors="*{roomNumber}"></small>
                     </div>
-                    <!-- Add other form fields here (description, maxSeats, minSeats, openTime, closeTime) -->
+                    &lt;!&ndash; Add other form fields here (description, maxSeats, minSeats, openTime, closeTime) &ndash;&gt;
                     <div class="form-group">
                         <label for="description">Description:</label>
                         <input type="text" class="form-control" id="description" th:field="*{description}" required>
                         <small th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></small>
                     </div>
-                    <!-- Add other form fields here -->
+                    &lt;!&ndash; Add other form fields here &ndash;&gt;
                     <button type="submit" class="btn btn-primary">Create</button>
+                </form>-->
+                <form th:action="@{/rooms}" th:object="${roomDto}" method="post">
+                    <div>
+                        <label for="roomNumber">Room Number:</label>
+                        <input type="text" id="roomNumber" th:field="*{roomNumber}" required>
+                        <span th:if="${#fields.hasErrors('roomNumber')}" th:errors="*{roomNumber}"></span>
+                    </div>
+                    <div>
+                        <label for="description">Description:</label>
+                        <input type="text" id="description" th:field="*{description}" required>
+                        <span th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></span>
+                    </div>
+                    <div>
+                        <label for="maxSeats">Max Seats:</label>
+                        <input type="number" id="maxSeats" th:field="*{maxSeats}" required>
+                        <span th:if="${#fields.hasErrors('maxSeats')}" th:errors="*{maxSeats}"></span>
+                    </div>
+                    <div>
+                        <label for="minSeats">Min Seats:</label>
+                        <input type="number" id="minSeats" th:field="*{minSeats}" required>
+                        <span th:if="${#fields.hasErrors('minSeats')}" th:errors="*{minSeats}"></span>
+                    </div>
+                    <div>
+                        <label for="openTime">Open Time:</label>
+                        <input type="time" id="openTime" th:field="*{openTime}" required>
+                        <span th:if="${#fields.hasErrors('openTime')}" th:errors="*{openTime}"></span>
+                    </div>
+                    <div>
+                        <label for="closeTime">Close Time:</label>
+                        <input type="time" id="closeTime" th:field="*{closeTime}" required>
+                        <span th:if="${#fields.hasErrors('closeTime')}" th:errors="*{closeTime}"></span>
+                    </div>
+                    <button type="submit">Create</button>
                 </form>
             </div>
         </div>

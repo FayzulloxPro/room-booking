@@ -21,7 +21,7 @@ public class RoomDto {
     @NotBlank(message = "Description cannot be blank")
     private String description;
 
-    @Max(value = 1, message = "Max seats must be at least 1")
+    @Min(value = 1, message = "Max seats must be at least 1")
     private short maxSeats;
 
     @Min(value = 1, message = "Min seats must be at least 1")
