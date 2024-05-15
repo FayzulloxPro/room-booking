@@ -3,6 +3,8 @@ package dev.fayzullokh.roombooking.entities;
 import dev.fayzullokh.roombooking.enums.Role;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -27,6 +29,7 @@ public class User extends BaseEntityAudit {
     @Column(name = "phone")
     private String phone;
 
+    @Enumerated(EnumType.STRING)
     private Role role;
 
     private LocalDateTime lastLogin;

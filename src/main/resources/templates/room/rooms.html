@@ -25,6 +25,7 @@
                 <th>Min Seats</th>
                 <th>Open Time</th>
                 <th>Close Time</th>
+                <th th:if="${role eq 'ADMIN'}">Change</th>
             </tr>
             </thead>
             <tbody>
@@ -36,6 +37,13 @@
                 <td th:text="${room.minSeats}"></td>
                 <td th:text="${room.openTime}"></td>
                 <td th:text="${room.closeTime}"></td>
+                <td>
+                    <!-- Button to open modal for updating room -->
+                    <button type="button" class="btn btn-primary" th:if="${role eq 'ADMIN'}"
+                            th:attr="data-roomid=${room.id}" data-toggle="modal" data-target="#updateRoomModal">
+                        Update
+                    </button>
+                </td>
             </tr>
             </tbody>
         </table>
@@ -46,13 +54,13 @@
     </div>
     <!-- Add Room button (only visible to admin) -->
 <!--    <div th:if="${#authorization.expression('hasRole(''ADMIN'')')}">-->
-    <div>
+     <div th:if="${role eq 'ADMIN'}">
         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addRoomModal">Add Room</button>
     </div>
 </div>
 
 <!-- Add Room Modal -->
-<div class="modal fade" id="addRoomModal" tabindex="-1" role="dialog" aria-labelledby="addRoomModalLabel"
+<div th:if="${role eq 'ADMIN'}" class="modal fade" id="addRoomModal" tabindex="-1" role="dialog" aria-labelledby="addRoomModalLabel"
      aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -64,21 +72,109 @@
             </div>
             <div class="modal-body">
                 <!-- Form to create a new room -->
-                <form th:action="@{/rooms}" th:object="${roomDto}" method="post">
+                <!--<form th:action="@{/rooms}" th:object="${roomDto}" method="post">
                     <div class="form-group">
                         <label for="roomNumber">Room Number:</label>
                         <input type="text" class="form-control" id="roomNumber" th:field="*{roomNumber}" required>
                         <small th:if="${#fields.hasErrors('roomNumber')}" th:errors="*{roomNumber}"></small>
                     </div>
-                    <!-- Add other form fields here (description, maxSeats, minSeats, openTime, closeTime) -->
+                    &lt;!&ndash; Add other form fields here (description, maxSeats, minSeats, openTime, closeTime) &ndash;&gt;
                     <div class="form-group">
                         <label for="description">Description:</label>
                         <input type="text" class="form-control" id="description" th:field="*{description}" required>
                         <small th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></small>
                     </div>
-                    <!-- Add other form fields here -->
+                    &lt;!&ndash; Add other form fields here &ndash;&gt;
                     <button type="submit" class="btn btn-primary">Create</button>
+                </form>-->
+                <form th:action="@{/rooms}" th:object="${roomDto}" method="post">
+                    <div>
+                        <label for="roomNumber">Room Number:</label>
+                        <input type="text" id="roomNumber" th:field="*{roomNumber}" required>
+                        <span th:if="${#fields.hasErrors('roomNumber')}" th:errors="*{roomNumber}"></span>
+                    </div>
+                    <div>
+                        <label for="description">Description:</label>
+                        <input type="text" id="description" th:field="*{description}" required>
+                        <span th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></span>
+                    </div>
+                    <div>
+                        <label for="maxSeats">Max Seats:</label>
+                        <input type="number" id="maxSeats" th:field="*{maxSeats}" required>
+                        <span th:if="${#fields.hasErrors('maxSeats')}" th:errors="*{maxSeats}"></span>
+                    </div>
+                    <div>
+                        <label for="minSeats">Min Seats:</label>
+                        <input type="number" id="minSeats" th:field="*{minSeats}" required>
+                        <span th:if="${#fields.hasErrors('minSeats')}" th:errors="*{minSeats}"></span>
+                    </div>
+                    <div>
+                        <label for="openTime">Open Time:</label>
+                        <input type="time" id="openTime" th:field="*{openTime}" required>
+                        <span th:if="${#fields.hasErrors('openTime')}" th:errors="*{openTime}"></span>
+                    </div>
+                    <div>
+                        <label for="closeTime">Close Time:</label>
+                        <input type="time" id="closeTime" th:field="*{closeTime}" required>
+                        <span th:if="${#fields.hasErrors('closeTime')}" th:errors="*{closeTime}"></span>
+                    </div>
+                    <button type="submit">Create</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Update Room Modal -->
+<div class="modal fade" id="updateRoomModal" tabindex="-1" role="dialog" aria-labelledby="updateRoomModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateRoomModalLabel">Update Room</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Form to update room details -->
+                <form id="updateRoomForm" method="put">
+                    <div class="form-group">
+                        <label for="updateRoomNumber">Room Number:</label>
+                        <input type="text" class="form-control" id="updateRoomNumber" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="updateDescription">Description:</label>
+                        <input type="text" class="form-control" id="updateDescription" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="updateMaxSeats">Max Seats:</label>
+                        <input type="number" class="form-control" id="updateMaxSeats" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="updateMinSeats">Min Seats:</label>
+                        <input type="number" class="form-control" id="updateMinSeats" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="updateOpenTime">Open Time:</label>
+                        <input type="time" class="form-control" id="updateOpenTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="updateCloseTime">Close Time:</label>
+                        <input type="time" class="form-control" id="updateCloseTime" required>
+                    </div>
+                    <!--<button type="submit" class="btn btn-primary">Update</button>-->
+                    <!--<button id="roomId" type="button" class="btn btn-primary" th:if="${role eq 'ADMIN'}"
+                            th:attr="data-roomid=${room.id}" data-toggle="modal" data-target="#updateRoomModal">
+                        Update
+                    </button>-->
+                    <button id="roomId" type="button" class="btn btn-primary" th:if="${role eq 'ADMIN'}"
+                            data-toggle="modal" data-target="#updateRoomModal">
+                        Update
+                    </button>
+                </form>
+
             </div>
         </div>
     </div>
@@ -86,8 +182,77 @@
 
 <!-- Include jQuery and Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // When the "Update" button is clicked
+        $('button[data-target="#updateRoomModal"]').on('click', function() {
+            // Get the room ID from the button's data attribute
+            var roomId = $(this).data('roomid');
 
+            // AJAX call to fetch room details by ID
+            $.ajax({
+                url: '/rooms/' + roomId, // Endpoint to fetch room details
+                type: 'GET',
+                success: function(response) {
+                    // Populate the modal with room details fetched from the server
+                    $('#updateRoomModal #updateRoomNumber').val(response.roomNumber);
+                    $('#updateRoomModal #updateDescription').val(response.description);
+                    $('#updateRoomModal #updateMaxSeats').val(response.maxSeats);
+                    $('#updateRoomModal #updateMinSeats').val(response.minSeats);
+                    $('#updateRoomModal #updateOpenTime').val(response.openTime);
+                    $('#updateRoomModal #updateCloseTime').val(response.closeTime);
+
+                    // Set the room ID in a hidden field in the form
+                    $('#updateRoomModal #roomId').val(roomId);
+                    $('#roomId').attr('data-roomid', roomId);
+                },
+                error: function(xhr, status, error) {
+                    // Handle error
+                    console.error(error);
+                }
+            });
+        });
+
+        // When the update room form is submitted
+        $('#updateRoomForm').on('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            // Get form data
+            var formData = {
+                roomNumber: $('#updateRoomNumber').val(),
+                description: $('#updateDescription').val(),
+                maxSeats: $('#updateMaxSeats').val(),
+                minSeats: $('#updateMinSeats').val(),
+                openTime: $('#updateOpenTime').val(),
+                closeTime: $('#updateCloseTime').val(),
+                roomId: $('#roomId').val() // Include the room ID
+            };
+
+            // AJAX call to update room details
+            $.ajax({
+                url: '/rooms/' + formData.roomId, // Endpoint to update room details
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(formData), // Convert data to JSON format
+                success: function(response) {
+                    // Handle success response
+                    console.log('Room updated successfully:', response);
+
+                    // Close the modal
+                    $('#updateRoomModal').modal('hide');
+                },
+                error: function(xhr, status, error) {
+                    // Handle error
+                    console.error('Error updating room:', error);
+                }
+            });
+        });
+    });
+
+
+</script>
 </body>
 </html>

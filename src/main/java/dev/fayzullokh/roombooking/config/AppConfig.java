@@ -30,4 +30,18 @@ public class AppConfig {
             log.info("Admin created: {}", user);
         };
     }
+    @Bean
+    public CommandLineRunner createUser() {
+        return (args) -> {
+            User user1 = userService.getUser("fayzullokh");
+            if (user1 != null) return;
+            User user = userService.saveUser(new UserRegisterDTO(
+                    "fayzullokh",
+                    "123",
+                    "123",
+                    "fayzullokh@mail.ru"
+            ));
+            log.info("User created: {}", user);
+        };
+    }
 }
