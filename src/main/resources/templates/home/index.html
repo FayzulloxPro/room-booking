@@ -75,7 +75,7 @@
                         <li th:if="${user != null}"><a href="/auth/logout" class="logout">Log out</a></li>
                         <li th:unless="${user != null}"><a href="/auth/login" class="logout">Log in</a></li>
                         <li th:if="${user != null}">
-                            <a th:href="@{user/profile}"><span th:text="*{username}"></span></a>
+                            <a th:href="@{users/profile}"><span th:text="*{username}"></span></a>
                         </li>
                     </ul>
                     <a class='menu-trigger'>

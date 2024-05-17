@@ -3,12 +3,15 @@ package dev.fayzullokh.roombooking.services;
 import dev.fayzullokh.roombooking.config.SessionUser;
 import dev.fayzullokh.roombooking.dtos.ChangePasswordRequestDto;
 import dev.fayzullokh.roombooking.dtos.UserRegisterDTO;
+import dev.fayzullokh.roombooking.dtos.UserResponseDto;
 import dev.fayzullokh.roombooking.entities.User;
 import dev.fayzullokh.roombooking.enums.Role;
 import dev.fayzullokh.roombooking.exceptions.AccessDeniedException;
 import dev.fayzullokh.roombooking.exceptions.NotFoundException;
 import dev.fayzullokh.roombooking.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +50,7 @@ public class UserService {
                 .username(dto.getUsername())
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .email(dto.getEmail())
+                .role(Role.USER)
                 .build();
         return userRepository.save(user);
     }
@@ -77,5 +81,38 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
         user.setPasswordChanged(true);
         return userRepository.save(user);
+    }
+
+    public Page<UserResponseDto> getAll(Pageable pageable) {
+        Page<User> all = userRepository.findAll(pageable);
+        if (all.getContent().size() == 0) {
+            return null;
+        }
+        return all.map(user -> UserResponseDto.builder()
+                .chatId(user.getChatId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .role(user.getRole())
+                .lastLogin(user.getLastLogin())
+                .passwordChanged(user.isPasswordChanged())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .build());
+    }
+
+    public boolean updateProfile(UserResponseDto dto) {
+        User user = sessionUser.getUser();
+        if (user == null) {
+            return false;
+        }
+        user.setUsername(dto.getUsername());
+        user.setEmail(dto.getEmail());
+        user.setPhone(dto.getPhone());
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+
+        userRepository.save(user);
+        return true;
     }
 }
