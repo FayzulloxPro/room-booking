@@ -54,8 +54,8 @@ public class RoomController {
     }
 
 
-    @PutMapping("/{roomId}")
-    public ModelAndView updateRoom(@PathVariable Long roomId,
+    @PostMapping("/{roomId}")
+    public ModelAndView updateRoom(@PathVariable String roomId,
                                    @Valid @ModelAttribute("roomDto") RoomDto dto,
                                    BindingResult bindingResult) {
 

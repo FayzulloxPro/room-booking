@@ -8,6 +8,11 @@
     <title>Rooms</title>
     <!-- Include Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .modal-success, .modal-error {
+            /*display: none;*/
+        }
+    </style>
 </head>
 <body>
 
@@ -39,8 +44,8 @@
                 <td th:text="${room.closeTime}"></td>
                 <td>
                     <!-- Button to open modal for updating room -->
-                    <button type="button" class="btn btn-primary" th:if="${role eq 'ADMIN'}"
-                            th:attr="data-roomid=${room.id}" data-toggle="modal" data-target="#updateRoomModal">
+                    <button type="button" class="btn btn-primary update-button" th:if="${role eq 'ADMIN'}"
+                            th:attr="data-roomid=${room.id}" data-toggle="modal" data-target="#roomModal">
                         Update
                     </button>
                 </td>
@@ -53,82 +58,13 @@
         <p>No rooms</p>
     </div>
     <!-- Add Room button (only visible to admin) -->
-<!--    <div th:if="${#authorization.expression('hasRole(''ADMIN'')')}">-->
      <div th:if="${role eq 'ADMIN'}">
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addRoomModal">Add Room</button>
+        <button type="button" class="btn btn-primary create-button" data-toggle="modal" data-target="#roomModal">Add Room</button>
     </div>
 </div>
 
-<!-- Add Room Modal -->
-<div th:if="${role eq 'ADMIN'}" class="modal fade" id="addRoomModal" tabindex="-1" role="dialog" aria-labelledby="addRoomModalLabel"
-     aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addRoomModalLabel">Add Room</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <!-- Form to create a new room -->
-                <!--<form th:action="@{/rooms}" th:object="${roomDto}" method="post">
-                    <div class="form-group">
-                        <label for="roomNumber">Room Number:</label>
-                        <input type="text" class="form-control" id="roomNumber" th:field="*{roomNumber}" required>
-                        <small th:if="${#fields.hasErrors('roomNumber')}" th:errors="*{roomNumber}"></small>
-                    </div>
-                    &lt;!&ndash; Add other form fields here (description, maxSeats, minSeats, openTime, closeTime) &ndash;&gt;
-                    <div class="form-group">
-                        <label for="description">Description:</label>
-                        <input type="text" class="form-control" id="description" th:field="*{description}" required>
-                        <small th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></small>
-                    </div>
-                    &lt;!&ndash; Add other form fields here &ndash;&gt;
-                    <button type="submit" class="btn btn-primary">Create</button>
-                </form>-->
-                <form th:action="@{/rooms}" th:object="${roomDto}" method="post">
-                    <div>
-                        <label for="roomNumber">Room Number:</label>
-                        <input type="text" id="roomNumber" th:field="*{roomNumber}" required>
-                        <span th:if="${#fields.hasErrors('roomNumber')}" th:errors="*{roomNumber}"></span>
-                    </div>
-                    <div>
-                        <label for="description">Description:</label>
-                        <input type="text" id="description" th:field="*{description}" required>
-                        <span th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></span>
-                    </div>
-                    <div>
-                        <label for="maxSeats">Max Seats:</label>
-                        <input type="number" id="maxSeats" th:field="*{maxSeats}" required>
-                        <span th:if="${#fields.hasErrors('maxSeats')}" th:errors="*{maxSeats}"></span>
-                    </div>
-                    <div>
-                        <label for="minSeats">Min Seats:</label>
-                        <input type="number" id="minSeats" th:field="*{minSeats}" required>
-                        <span th:if="${#fields.hasErrors('minSeats')}" th:errors="*{minSeats}"></span>
-                    </div>
-                    <div>
-                        <label for="openTime">Open Time:</label>
-                        <input type="time" id="openTime" th:field="*{openTime}" required>
-                        <span th:if="${#fields.hasErrors('openTime')}" th:errors="*{openTime}"></span>
-                    </div>
-                    <div>
-                        <label for="closeTime">Close Time:</label>
-                        <input type="time" id="closeTime" th:field="*{closeTime}" required>
-                        <span th:if="${#fields.hasErrors('closeTime')}" th:errors="*{closeTime}"></span>
-                    </div>
-                    <button type="submit">Create</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<!-- Update Room Modal -->
-<div class="modal fade" id="updateRoomModal" tabindex="-1" role="dialog" aria-labelledby="updateRoomModalLabel"
-     aria-hidden="true">
+<!-- Room Modal -->
+<div class="modal fade" id="roomModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -139,7 +75,7 @@
             </div>
             <div class="modal-body">
                 <!-- Form to update room details -->
-                <form id="updateRoomForm" method="put">
+                <form id="roomForm">
                     <div class="form-group">
                         <label for="updateRoomNumber">Room Number:</label>
                         <input type="text" class="form-control" id="updateRoomNumber" required>
@@ -164,17 +100,16 @@
                         <label for="updateCloseTime">Close Time:</label>
                         <input type="time" class="form-control" id="updateCloseTime" required>
                     </div>
-                    <!--<button type="submit" class="btn btn-primary">Update</button>-->
-                    <!--<button id="roomId" type="button" class="btn btn-primary" th:if="${role eq 'ADMIN'}"
-                            th:attr="data-roomid=${room.id}" data-toggle="modal" data-target="#updateRoomModal">
-                        Update
-                    </button>-->
-                    <button id="roomId" type="button" class="btn btn-primary" th:if="${role eq 'ADMIN'}"
-                            data-toggle="modal" data-target="#updateRoomModal">
+                    <button type="submit" class="btn btn-primary" th:if="${role eq 'ADMIN'}">
                         Update
                     </button>
                 </form>
 
+                <div class="modal-success alert-success">
+                    <p>Success</p>
+                </div>
+
+                <div class="modal-error alert alert-danger">Something went wrong</div>
             </div>
         </div>
     </div>
@@ -186,70 +121,143 @@
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
+
+    const modalElements = {
+        form: $("#roomForm"),
+        number: $("#updateRoomNumber"),
+        description: $("#updateDescription"),
+        maxSeats: $("#updateMaxSeats"),
+        minSeats: $("#updateMinSeats"),
+        openTime: $("#updateOpenTime"),
+        closeTime: $("#updateCloseTime"),
+        error: $(".modal-error"),
+        success: $(".modal-success")
+    }
+
+    const modalData = {
+        id: null,
+        reload: false,
+    }
+    function modalHandler() {
+        const updateButton = $(".update-button");
+        const createButton = $(".create-button");
+
+        const modal = $("#roomModal");
+
+        updateButton.on("click", (e) => {
+            clearModalData();
+            modalData.id = e.target.getAttribute("data-roomid");
+            loadRoomInfo();
+        });
+
+        createButton.on("click", () => {
+            modalData.id = null;
+            clearModalData();
+        });
+
+        modal.on("hidden.bs.modal", () => {
+            if (modalData.reload) {
+                window.location.reload();
+            }
+        });
+    }
+
+    function loadRoomInfo() {
+        // AJAX call to fetch room details by ID
+        $.ajax({
+            url: "/rooms/" + modalData.id, // Endpoint to fetch room details
+            type: "GET",
+            success: function(response) {
+                // Populate the modal with room details fetched from the server
+                modalElements.number.val(response.roomNumber);
+                modalElements.description.val(response.description);
+                modalElements.maxSeats.val(response.maxSeats);
+                modalElements.minSeats.val(response.minSeats);
+                modalElements.openTime.val(response.openTime);
+                modalElements.closeTime.val(response.closeTime);
+            },
+            error: function(xhr, status, error) {
+                onAjaxError(error);
+            }
+        });
+    }
+
+    function clearModalData() {
+        modalElements.number.val(null);
+        modalElements.description.val(null);
+        modalElements.maxSeats.val(null);
+        modalElements.minSeats.val(null);
+        modalElements.openTime.val(null);
+        modalElements.closeTime.val(null);
+        modalElements.form.css("display", "block");
+        modalElements.error.css("display", "none");
+        modalElements.success.css("display", "none");
+        modalData.reload = false;
+    }
+
+    function formHandler() {
+        modalElements.form.on("submit", (e) => {
+            e.preventDefault();
+
+            const data = JSON.stringify({
+                roomNumber: modalElements.number.val(),
+                description: modalElements.description.val(),
+                maxSeats: modalElements.maxSeats.val(),
+                minSeats: modalElements.minSeats.val(),
+                openTime: modalElements.openTime.val(),
+                closeTime: modalElements.closeTime.val(),
+            })
+
+            if (modalData.id !== null) {
+                updateRoom(data);
+            } else {
+                createRoom(data);
+            }
+        })
+    }
+
+    function updateRoom(data) {
+        $.ajax({
+            url: "/rooms/" + modalData.id,
+            type: "PUT",
+            data: data,
+            dataType: "application/json",
+            success: function(response) {
+                modalElements.form.css("display", "none");
+                modalElements.success.css("display", "block");
+                modalData.reload = true;
+            },
+            error: function(xhr, status, error) {
+                onAjaxError(error);
+            }
+        });
+    }
+
+    function createRoom(data) {
+        $.ajax({
+            url: "/rooms/" + modalData.id,
+            type: "POST",
+            data: data,
+            dataType: "application/json",
+            success: function(response) {
+                modalElements.form.css("display", "none");
+                modalElements.success.css("display", "block");
+                modalData.reload = true;
+            },
+            error: function(xhr, status, error) {
+                onAjaxError(error);
+            }
+        });
+    }
+
+    function onAjaxError(error) {
+        console.error(error);
+        modalElements.error.css("display", "block");
+    }
+
     $(document).ready(function() {
-        // When the "Update" button is clicked
-        $('button[data-target="#updateRoomModal"]').on('click', function() {
-            // Get the room ID from the button's data attribute
-            var roomId = $(this).data('roomid');
-
-            // AJAX call to fetch room details by ID
-            $.ajax({
-                url: '/rooms/' + roomId, // Endpoint to fetch room details
-                type: 'GET',
-                success: function(response) {
-                    // Populate the modal with room details fetched from the server
-                    $('#updateRoomModal #updateRoomNumber').val(response.roomNumber);
-                    $('#updateRoomModal #updateDescription').val(response.description);
-                    $('#updateRoomModal #updateMaxSeats').val(response.maxSeats);
-                    $('#updateRoomModal #updateMinSeats').val(response.minSeats);
-                    $('#updateRoomModal #updateOpenTime').val(response.openTime);
-                    $('#updateRoomModal #updateCloseTime').val(response.closeTime);
-
-                    // Set the room ID in a hidden field in the form
-                    $('#updateRoomModal #roomId').val(roomId);
-                    $('#roomId').attr('data-roomid', roomId);
-                },
-                error: function(xhr, status, error) {
-                    // Handle error
-                    console.error(error);
-                }
-            });
-        });
-
-        // When the update room form is submitted
-        $('#updateRoomForm').on('submit', function(event) {
-            event.preventDefault(); // Prevent default form submission
-
-            // Get form data
-            var formData = {
-                roomNumber: $('#updateRoomNumber').val(),
-                description: $('#updateDescription').val(),
-                maxSeats: $('#updateMaxSeats').val(),
-                minSeats: $('#updateMinSeats').val(),
-                openTime: $('#updateOpenTime').val(),
-                closeTime: $('#updateCloseTime').val(),
-                roomId: $('#roomId').val() // Include the room ID
-            };
-
-            // AJAX call to update room details
-            $.ajax({
-                url: '/rooms/' + formData.roomId, // Endpoint to update room details
-                type: 'PUT',
-                contentType: 'application/json',
-                data: JSON.stringify(formData), // Convert data to JSON format
-                success: function(response) {
-                    // Handle success response
-                    console.log('Room updated successfully:', response);
-
-                    // Close the modal
-                    $('#updateRoomModal').modal('hide');
-                },
-                error: function(xhr, status, error) {
-                    // Handle error
-                    console.error('Error updating room:', error);
-                }
-            });
-        });
+        modalHandler();
+        formHandler();
     });
 
 

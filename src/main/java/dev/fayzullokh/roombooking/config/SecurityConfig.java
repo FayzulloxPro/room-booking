@@ -55,6 +55,7 @@ public class SecurityConfig {
             "/auth/register",
             "/auth/forget-password",
             "/auth/reset-password",
+            "/",
             "/home" // Add /home to the WHITE_LIST
     };
 

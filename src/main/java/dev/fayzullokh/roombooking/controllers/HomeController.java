@@ -19,7 +19,15 @@ public class HomeController {
 
     // allow only authenticated users
     @GetMapping("/home")
-    public ModelAndView hasAdminRole(Principal principal) {
+    public ModelAndView home(Principal principal) {
+        ModelAndView modelAndView = new ModelAndView();
+        User user = userService.getUser(principal!=null?principal.getName():null);
+        modelAndView.addObject("user", user);
+        modelAndView.setViewName("home/index");
+        return modelAndView;
+    }
+    @GetMapping("/")
+    public ModelAndView mainPage(Principal principal) {
         ModelAndView modelAndView = new ModelAndView();
         User user = userService.getUser(principal!=null?principal.getName():null);
         modelAndView.addObject("user", user);
