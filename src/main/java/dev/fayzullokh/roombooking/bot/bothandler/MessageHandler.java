@@ -98,26 +98,10 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
 
         org.telegram.telegrambots.meta.api.objects.User from = update.getMessage().getFrom();
         User user = userService.getUserByChatId(chatId, true);
-        /*if (Objects.isNull(user)) {
+        if (Objects.isNull(user)) {
             return new SendMessage(String.valueOf(chatId), "Login to use bot. \nSend /login");
         }
-        return new SendMessage(String.valueOf(chatId), "Welcome " + user.getUsername());*/
-        SendMessage sendMessage = new SendMessage(String.valueOf(chatId), "Ro'yxatdan o'tish: ");
-        KeyboardButton contactButton = new KeyboardButton("Ro'yxatdan o'tish");
-        contactButton.setRequestContact(true);
-
-        KeyboardRow row = new KeyboardRow();
-        row.add(contactButton);
-
-        List<KeyboardRow> keyboard = new ArrayList<>();
-        keyboard.add(row);
-
-        ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup();
-        markup.setKeyboard(keyboard);
-        markup.setResizeKeyboard(true);
-
-        sendMessage.setReplyMarkup(markup);
-        return sendMessage;
+        return new SendMessage(String.valueOf(chatId), "Welcome " + user.getUsername());
     }
 
     /*private User createUser(long chatId, Update update) {
