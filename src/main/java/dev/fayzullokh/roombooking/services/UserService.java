@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -114,5 +115,37 @@ public class UserService {
 
         userRepository.save(user);
         return true;
+    }
+
+    public User getUserByChatId(long chatId, boolean isTelegramRequest) {
+        if (isTelegramRequest) {
+            return userRepository.findByChatId(chatId)
+                    .orElse(null);
+        }
+        return null;
+    }
+
+    public User login(long chatId, String text, boolean isTelegramRequest) {
+        if (isTelegramRequest) {
+            String[] split = text.split("#");
+            if (split.length != 2) {
+                return null;
+            }
+            String username = split[0];
+            String password = split[1];
+            User user = getUser(username);
+            if (Objects.isNull(user)) {
+                return null;
+            }
+            if (passwordEncoder.matches(password, user.getPassword())) {
+                // Successful login and make this telegram user as logged in to account
+                user.setChatId(chatId);
+                userRepository.save(user);
+                return user;
+            }
+
+        }
+        //hozircha
+        return null;
     }
 }

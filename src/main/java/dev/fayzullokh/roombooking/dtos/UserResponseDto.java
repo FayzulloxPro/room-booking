@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @Builder
 public class UserResponseDto {
 
-    private String chatId; // if chat id is not null then user is logged in his account in telegram with this chat id
+    private Long chatId; // if chat id is not null then user is logged in his account in telegram with this chat id
 
     @NotBlank(message = "Username cannot be blank")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")

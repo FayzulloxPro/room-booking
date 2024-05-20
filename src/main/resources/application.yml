@@ -29,3 +29,8 @@ jwt:
       expiry: 864000000
       secret:
         key: 7134743777217A25432A462D4A614E645267556B58703272357538782F413F44
+
+telegram:
+  bot:
+    token: 6386300937:AAEKdtfMPpgi1kyJPa32UJQTrk3Rin_4fUc
+    username: RoomBookingbotbot

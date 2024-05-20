@@ -3,6 +3,7 @@ package dev.fayzullokh.roombooking.controllers;
 import dev.fayzullokh.roombooking.config.SessionUser;
 import dev.fayzullokh.roombooking.dtos.RoomDto;
 import dev.fayzullokh.roombooking.entities.Room;
+import dev.fayzullokh.roombooking.entities.User;
 import dev.fayzullokh.roombooking.services.RoomService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 @RequestMapping("/rooms")
 public class RoomController {
@@ -54,7 +55,7 @@ public class RoomController {
     }
 
 
-    @PostMapping("/{roomId}")
+   /* @PostMapping("/{roomId}")
     public ModelAndView updateRoom(@PathVariable String roomId,
                                    @Valid @ModelAttribute("roomDto") RoomDto dto,
                                    BindingResult bindingResult) {
@@ -64,9 +65,24 @@ public class RoomController {
             modelAndView.setViewName("room/edit"); // Show the form with validation errors
             return modelAndView;
         }
-        Room room = null; /*roomService.update(roomId, dto);*/
+        Room room = null; *//*roomService.update(roomId, dto);*//*
         modelAndView.setViewName("redirect:/rooms"); // Redirect to another page after successful update
         return modelAndView;
+    }*/
+
+    @PutMapping("/{roomId}")
+    public ModelAndView updateRoom(@PathVariable Long roomId,
+                                   @Valid @RequestBody RoomDto dto,
+                                   BindingResult bindingResult) throws Exception {
+
+        ModelAndView modelAndView = new ModelAndView();
+        if (bindingResult.hasErrors()) {
+            throw new Exception();
+        }
+        User user = sessionUser.getUser();
+        Room room = roomService.update(roomId, dto);
+        modelAndView.setViewName("redirect:/rooms"); // Redirect to another page after successful update
+         return modelAndView;
     }
 
 }

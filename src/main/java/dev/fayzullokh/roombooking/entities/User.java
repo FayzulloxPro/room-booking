@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 public class User extends BaseEntityAudit {
 
     @Column(name = "chat_id")
-    private String chatId;    //if chat id is not null then user is logged in his account in telegram with this chat id
+    private Long chatId;    //if chat id is not null then user is logged in his account in telegram with this chat id
     @Column(name = "username", unique = true, nullable = false, updatable = false)
     private String username;
 

@@ -12,4 +12,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("select c from users c where upper(c.username)=upper(?1)")
     Optional<User> findByUsername(String username);
 
+    Optional<User> findByChatId(long chatId);
 }

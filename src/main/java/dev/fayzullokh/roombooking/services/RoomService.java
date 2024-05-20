@@ -47,4 +47,17 @@ public class RoomService {
                 room.getCloseTime()
         );
     }
+
+    public Room update(Long roomId, RoomDto dto) {
+        Room room = roomRepository.findById(roomId).orElseThrow(() -> new NotFoundException("Room is not found with id: " + roomId));
+
+        room.setRoomNumber(dto.getRoomNumber());
+        room.setDescription(dto.getDescription());
+        room.setMaxSeats(dto.getMaxSeats());
+        room.setMinSeats(dto.getMinSeats());
+        room.setOpenTime(dto.getOpenTime());
+        room.setCloseTime(dto.getCloseTime());
+
+        return roomRepository.save(room);
+    }
 }

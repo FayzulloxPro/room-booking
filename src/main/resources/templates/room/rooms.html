@@ -221,7 +221,8 @@
             url: "/rooms/" + modalData.id,
             type: "PUT",
             data: data,
-            dataType: "application/json",
+            contentType: "application/json",
+            dataType: "json",
             success: function(response) {
                 modalElements.form.css("display", "none");
                 modalElements.success.css("display", "block");
@@ -238,7 +239,8 @@
             url: "/rooms/" + modalData.id,
             type: "POST",
             data: data,
-            dataType: "application/json",
+            contentType: "application/json",
+            dataType: "json",
             success: function(response) {
                 modalElements.form.css("display", "none");
                 modalElements.success.css("display", "block");
