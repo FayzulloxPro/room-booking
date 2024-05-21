@@ -3,21 +3,19 @@ package dev.fayzullokh.roombooking.bot.bothandler;
 import dev.fayzullokh.roombooking.bot.enums.UserBotState;
 import dev.fayzullokh.roombooking.bot.utils.InlineKeyboardMarkupFactory;
 import dev.fayzullokh.roombooking.entities.User;
+import dev.fayzullokh.roombooking.enums.Role;
 import dev.fayzullokh.roombooking.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -54,6 +52,7 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
             case "/help" -> handleHelpMessage(chatId, languageCode);
             case "/login" -> handleLoginMessage(chatId, languageCode);
             case "/logout" -> handleLogoutMessage(chatId, languageCode);
+            case "/admin" -> handleAdminMessage(chatId, languageCode);
 //            case "/admin" -> new SendMessage();
             default -> {
                 SendMessage handledPlainText = handlePlainText(chatId, languageCode, text);
@@ -66,12 +65,33 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
 
                     })
                 }*/  // this is to delete after successful login
-                yield handledPlainText;}
+                yield handledPlainText;
+            }
         };
         return sendMessage;
     }
 
+    private SendMessage handleAdminMessage(long chatId, String languageCode) {
+        User userByChatId = userService.getUserByChatId(chatId, true);
+        if (Objects.isNull(userByChatId)) {
+            return new SendMessage(String.valueOf(chatId), "You are not logged in.\nSend /login to login");
+        }
+        if (userByChatId.getRole().equals(Role.USER)) {
+            return new SendMessage(String.valueOf(chatId), "Unknown command");
+        }
+        InlineKeyboardMarkup keyboardMarkup = inlineKeyboardMarkupFactory.adminMenu(chatId, languageCode);
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setReplyMarkup(keyboardMarkup);
+        sendMessage.setChatId(String.valueOf(chatId));
+        sendMessage.setText("Admin menu: ");
+        return sendMessage;
+    }
+
     private SendMessage handleLogoutMessage(long chatId, String languageCode) {
+        User userByChatId = userService.getUserByChatId(chatId, true);
+        if (Objects.isNull(userByChatId)) {
+            return new SendMessage(String.valueOf(chatId), "You are not logged in");
+        }
         InlineKeyboardMarkup keyboardMarkup = inlineKeyboardMarkupFactory.logout(languageCode);
         SendMessage sendMessage = new SendMessage(String.valueOf(chatId), "Are you sure you want to log out?");
         sendMessage.setReplyMarkup(keyboardMarkup);
@@ -91,12 +111,20 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
                 return sendMessage;
             }
             usersState.remove(chatId);  // remove user's state
-            return new SendMessage(userChatId, "Login successful. Welcome " + user.getUsername());
+            SendMessage sendMessage = new SendMessage(userChatId, "Login successful. Welcome <b>" + user.getUsername() + "</b>");
+            sendMessage.setParseMode("HTML");
+            return sendMessage;
         }
         return new SendMessage(userChatId, "No such command");
     }
 
     private SendMessage handleLoginMessage(long chatId, String languageCode) {
+        User userByChatId = userService.getUserByChatId(chatId, true);
+        if (!Objects.isNull(userByChatId)) {
+            SendMessage sendMessage = new SendMessage(String.valueOf(chatId), "You are already logged in to <b>" + userByChatId.getUsername() + "</b>.\nSend /logout to logout from current account");
+            sendMessage.setParseMode("HTML");
+            return sendMessage;
+        }
         usersState.put(chatId, UserBotState.LOGIN);
         SendMessage sendMessage = new SendMessage(String.valueOf(chatId), "Send your username and password with format below:\n" +
                 "\n<b>username#password</b>");

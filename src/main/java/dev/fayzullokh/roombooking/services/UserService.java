@@ -156,8 +156,16 @@ public class UserService {
                 return null;
             }
             userByChatId.setChatId(null);
+            userRepository.save(userByChatId);
             return userByChatId;
         }
         return null;
     }
+
+    /*public User logout(long chatId, boolean isTelegramRequest) {
+        if(isTelegramRequest){
+            User userByChatId = getUserByChatId(chatId, true);
+            userByChatId.
+        }
+    }*/
 }

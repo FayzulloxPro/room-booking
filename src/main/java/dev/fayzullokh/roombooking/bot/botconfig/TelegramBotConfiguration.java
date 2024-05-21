@@ -1,5 +1,7 @@
 package dev.fayzullokh.roombooking.bot.botconfig;
 
+import dev.fayzullokh.roombooking.bot.bothandler.DeleteCallBackHandler;
+import dev.fayzullokh.roombooking.bot.bothandler.MessageCallBackHandler;
 import dev.fayzullokh.roombooking.bot.bothandler.MessageHandler;
 import dev.fayzullokh.roombooking.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,8 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 public class TelegramBotConfiguration {
     private final UserService userService;
     private final MessageHandler messageHandler;
+    private final DeleteCallBackHandler deleteCallBackHandler;
+    private final MessageCallBackHandler messageCallBackHandler;
     @Value("${telegram.bot.token}")
     private String botToken;
 
@@ -26,7 +30,7 @@ public class TelegramBotConfiguration {
 
     @Bean
     public Bot myTelegramBot() {
-        Bot bot = new Bot(botToken, botUsername, userService, messageHandler);
+        Bot bot = new Bot(botToken, botUsername, userService, messageHandler, deleteCallBackHandler, messageCallBackHandler);
         try {
             TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
             botsApi.registerBot(bot);

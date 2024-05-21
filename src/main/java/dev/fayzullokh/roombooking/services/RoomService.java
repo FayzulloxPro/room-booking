@@ -5,6 +5,9 @@ import dev.fayzullokh.roombooking.entities.Room;
 import dev.fayzullokh.roombooking.exceptions.NotFoundException;
 import dev.fayzullokh.roombooking.repositories.RoomRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,6 +17,10 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RoomService {
     private final RoomRepository roomRepository;
+    private final UserService userService;
+
+    private static final int DEFAULT_PAGE = 0;
+    private static final int DEFAULT_SIZE = 10;
 
     public Room create(RoomDto dto) {
         Room save = roomRepository.save(Room.builder()
@@ -59,5 +66,13 @@ public class RoomService {
         room.setCloseTime(dto.getCloseTime());
 
         return roomRepository.save(room);
+    }
+
+    public Page<Room> getAllRooms(int page, int size, Long chatId, boolean isTelegramRequest) {
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("roomNumber").ascending());
+        return roomRepository.findAll(pageRequest);
+    }
+    public Page<Room> getAllRooms(Long chatId, boolean isTelegramRequest) {
+        return getAllRooms(DEFAULT_PAGE, DEFAULT_SIZE, chatId, isTelegramRequest);
     }
 }

@@ -1,17 +1,22 @@
 package dev.fayzullokh.roombooking.bot.bothandler;
 
 import dev.fayzullokh.roombooking.bot.utils.InlineKeyboardMarkupFactory;
+import dev.fayzullokh.roombooking.entities.Room;
 import dev.fayzullokh.roombooking.entities.User;
+import dev.fayzullokh.roombooking.enums.Role;
+import dev.fayzullokh.roombooking.services.RoomService;
 import dev.fayzullokh.roombooking.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
+import java.util.List;
 import java.util.Objects;
 
 @Component
@@ -23,6 +28,7 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
 
     private final InlineKeyboardMarkupFactory inlineKeyboardMarkupFactory;
     private final UserService userService;
+    private final RoomService roomService;
 
     @Override
     public BotApiMethod<Message> handle(Update update) {
@@ -41,20 +47,42 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
             sendMessage.setText("You are not logged in");
             return sendMessage;
         }
-        if (data.equals("logout")){
-            user = userService.logout(chatId, true);
-            if (Objects.isNull(user)){
-                sendMessage.setText("You are not logged in");
-            }else {
-                sendMessage.setText("You logged out successfully");
+        switch (data) {
+            case "logout" -> {
+                user = userService.logout(chatId, true);
+                if (Objects.isNull(user)) {
+                    sendMessage.setText("You are not logged in");
+                } else {
+                    sendMessage.setText("You logged out successfully");
+                }
             }
-        } else if (data.equals("cancel")) {
-
+            case "rooms" -> {
+                if (user.getRole().equals(Role.USER)) {
+                    sendMessage.setText("Unknown command");
+                    return sendMessage;
+                }
+                Page<Room> rooms = roomService.getAllRooms(chatId, true);
+                if (rooms.getTotalElements() == 0) {
+                    sendMessage.setText("There are no rooms");
+                    return sendMessage;
+                }
+                InlineKeyboardMarkup factoryRoomsList = inlineKeyboardMarkupFactory.createRoomsList(rooms, chatId, languageCode);
+                sendMessage.setReplyMarkup(factoryRoomsList);
+                sendMessage.setText("Rooms list: ");
+                return sendMessage;
+            }
+            case "users" -> {
+                if (user.getRole().equals(Role.USER)) {
+                    sendMessage.setText("Unknown command");
+                    return sendMessage;
+                }
+            }
+            default -> sendMessage.setText("Unknown command");
         }
         return sendMessage;
     }
 
-    private SendMessage handleAdminCallBack(long chatId, int messageId, String data, String systemLanguageCode) {
+    /*private SendMessage handleAdminCallBack(long chatId, int messageId, String data, String systemLanguageCode) {
         switch (data) {
             case "admin_advertisement" -> {
                 return sendAdvertisementAndPutAdminState(chatId, messageId, systemLanguageCode);
@@ -68,7 +96,7 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
 //            case "admin_users_list" -> {
 //                return new SendDocument();
 //            }
-/*
+*//*
             case "admin_unblock_user" -> {
 
             }
@@ -77,7 +105,7 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
             }
             case "admin_users_list" -> {
 
-            }*/
+            }*//*
             default -> {
                 if (data.startsWith("admin_set")) {
                     return setNewRoleToUser(chatId, messageId, data, systemLanguageCode);
@@ -154,7 +182,7 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
         messageHandler.changeUserLanguageState(chatId, code);
         Language language = languageService.getLanguage(code);
         return new SendMessage(String.valueOf(chatId), languageService.getLocalizedMessage("language.changed.to", userSystemLanguage).formatted(language.getName(userSystemLanguage)));
-    }
+    }*/
 
 
 }

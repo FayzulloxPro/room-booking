@@ -1,6 +1,7 @@
 package dev.fayzullokh.roombooking.bot.botconfig;
 
 import dev.fayzullokh.roombooking.bot.bothandler.DeleteCallBackHandler;
+import dev.fayzullokh.roombooking.bot.bothandler.MessageCallBackHandler;
 import dev.fayzullokh.roombooking.bot.bothandler.MessageHandler;
 import dev.fayzullokh.roombooking.services.UserService;
 import jakarta.annotation.PostConstruct;
@@ -26,6 +27,7 @@ public class Bot extends TelegramLongPollingBot {
     private final UserService userService;
     private final MessageHandler messageHandler;
     private final DeleteCallBackHandler deleteCallBackHandler;
+    private final MessageCallBackHandler messageCallBackHandler;
 
 
     @Override
@@ -40,12 +42,17 @@ public class Bot extends TelegramLongPollingBot {
             CallbackQuery callbackQuery = update.getCallbackQuery();
             User user = callbackQuery.getFrom();
             String data = callbackQuery.getData();
-            if (data.equals("cancel")) {
+            if (data.equals("delete")) {
                 DeleteMessage deleteMessage = deleteCallBackHandler.handle(update);
                 send(deleteMessage);
-                new SendMessage(String.valueOf())
+                return;
+            } else if (data.equals("logout")) {
+                DeleteMessage deleteMessage = deleteCallBackHandler.handle(update);
+                send(deleteMessage);
                 return;
             }
+            BotApiMethod<Message> handle = messageCallBackHandler.handle(update);
+            send(handle);
         }
     }
 
