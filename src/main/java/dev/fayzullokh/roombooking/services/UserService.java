@@ -148,4 +148,16 @@ public class UserService {
         //hozircha
         return null;
     }
+
+    public User logout(long chatId, boolean isTelegramRequest) {
+        if (isTelegramRequest) {
+            User userByChatId = getUserByChatId(chatId, true);
+            if (Objects.isNull(userByChatId)) {
+                return null;
+            }
+            userByChatId.setChatId(null);
+            return userByChatId;
+        }
+        return null;
+    }
 }

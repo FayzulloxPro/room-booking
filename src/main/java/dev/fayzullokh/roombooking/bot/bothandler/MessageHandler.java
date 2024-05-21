@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -16,6 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 @RequiredArgsConstructor
@@ -53,7 +55,18 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
             case "/login" -> handleLoginMessage(chatId, languageCode);
             case "/logout" -> handleLogoutMessage(chatId, languageCode);
 //            case "/admin" -> new SendMessage();
-            default -> handlePlainText(chatId, languageCode, text);
+            default -> {
+                SendMessage handledPlainText = handlePlainText(chatId, languageCode, text);
+                /*if (handledPlainText.getText().contains("Login successful.")) {
+                    CompletableFuture.runAsync(()->{
+                        DeleteMessage deleteMessage = new DeleteMessage();
+                        Integer messageId = update.getMessage().getMessageId();
+                        deleteMessage.setMessageId(messageId);
+                        deleteMessage.setChatId(String.valueOf(chatId));
+
+                    })
+                }*/  // this is to delete after successful login
+                yield handledPlainText;}
         };
         return sendMessage;
     }
@@ -73,7 +86,9 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
             //process of login
             User user = userService.login(chatId, text, true);
             if (Objects.isNull(user)) {
-                return new SendMessage(userChatId, "Bad credentials");
+                SendMessage sendMessage = new SendMessage(userChatId, "Bad credentials. Send username and password below format\n<b>username#password</b>\"");
+                sendMessage.setParseMode("HTML");
+                return sendMessage;
             }
             usersState.remove(chatId);  // remove user's state
             return new SendMessage(userChatId, "Login successful. Welcome " + user.getUsername());
@@ -98,26 +113,10 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
 
         org.telegram.telegrambots.meta.api.objects.User from = update.getMessage().getFrom();
         User user = userService.getUserByChatId(chatId, true);
-        /*if (Objects.isNull(user)) {
+        if (Objects.isNull(user)) {
             return new SendMessage(String.valueOf(chatId), "Login to use bot. \nSend /login");
         }
-        return new SendMessage(String.valueOf(chatId), "Welcome " + user.getUsername());*/
-        SendMessage sendMessage = new SendMessage(String.valueOf(chatId), "Ro'yxatdan o'tish: ");
-        KeyboardButton contactButton = new KeyboardButton("Ro'yxatdan o'tish");
-        contactButton.setRequestContact(true);
-
-        KeyboardRow row = new KeyboardRow();
-        row.add(contactButton);
-
-        List<KeyboardRow> keyboard = new ArrayList<>();
-        keyboard.add(row);
-
-        ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup();
-        markup.setKeyboard(keyboard);
-        markup.setResizeKeyboard(true);
-
-        sendMessage.setReplyMarkup(markup);
-        return sendMessage;
+        return new SendMessage(String.valueOf(chatId), "Welcome " + user.getUsername());
     }
 
     /*private User createUser(long chatId, Update update) {
