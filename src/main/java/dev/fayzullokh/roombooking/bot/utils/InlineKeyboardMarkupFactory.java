@@ -50,6 +50,9 @@ public class InlineKeyboardMarkupFactory {
         row.add(getInlineButton("Users", "users"));
         twoDimensionList.add(row);
         twoDimensionList.add(List.of(
+                getInlineButton("Add room", "add_room")
+        ));
+        twoDimensionList.add(List.of(
                 getInlineButton("\uD83D\uDDD1", "delete")
         ));
         inlineKeyboardMarkup.setKeyboard(twoDimensionList);
@@ -85,7 +88,7 @@ public class InlineKeyboardMarkupFactory {
 
         if (roomPage.hasPrevious()) {
             navigationRow.add(
-                    getInlineButton("⬅\uFE0F", "PREV_PAGE_" + (roomPage.getNumber() - 1))
+                    getInlineButton("⬅\uFE0F", "PREV_PAGE#" + (roomPage.getNumber() - 1))
             );
         }
         navigationRow.add(
@@ -94,12 +97,23 @@ public class InlineKeyboardMarkupFactory {
 
         if (roomPage.hasNext()) {
             navigationRow.add(
-                    getInlineButton("➡\uFE0F", "NEXT_PAGE_" + (roomPage.getNumber() + 1))
+                    getInlineButton("➡\uFE0F", "NEXT_PAGE#" + (roomPage.getNumber() + 1))
             );
         }
         // Add the navigation row to the list of rows
         rowsInline.add(navigationRow);
         // Set the keyboard to the markup
+        markupInline.setKeyboard(rowsInline);
+        return markupInline;
+    }
+
+    public InlineKeyboardMarkup roomMenu(long chatId, Long roomId, String languageCode) {
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+
+        List<InlineKeyboardButton> rowInline = new ArrayList<>();
+
+
         markupInline.setKeyboard(rowsInline);
         return markupInline;
     }

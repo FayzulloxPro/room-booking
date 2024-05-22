@@ -33,6 +33,7 @@ public class User extends BaseEntityAudit {
     @Column(name = "phone")
     private String phone;
 
+    @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
 

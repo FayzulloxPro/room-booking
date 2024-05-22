@@ -35,7 +35,7 @@ public class Room extends BaseEntityAudit {
     @Column(name = "close_time")
     private LocalTime closeTime;
 
-    @Column(name = "available")
+    @Column(name = "available", columnDefinition = "boolean default true")
     private boolean available;
 
 }

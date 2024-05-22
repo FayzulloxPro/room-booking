@@ -1,9 +1,12 @@
 package dev.fayzullokh.roombooking.bot.bothandler;
 
 import dev.fayzullokh.roombooking.bot.utils.InlineKeyboardMarkupFactory;
+import dev.fayzullokh.roombooking.config.StateManagement;
+import dev.fayzullokh.roombooking.dtos.RoomDto;
 import dev.fayzullokh.roombooking.entities.Room;
 import dev.fayzullokh.roombooking.entities.User;
 import dev.fayzullokh.roombooking.enums.Role;
+import dev.fayzullokh.roombooking.enums.State;
 import dev.fayzullokh.roombooking.services.RoomService;
 import dev.fayzullokh.roombooking.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +19,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Component
@@ -30,9 +33,11 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
     private final UserService userService;
     private final RoomService roomService;
 
+    private final StateManagement stateManagement;
+
     @Override
     public BotApiMethod<Message> handle(Update update) {
-
+        Map<Long, State> adminState = stateManagement.getAdminState();
 
         CallbackQuery callback = update.getCallbackQuery();
         long chatId = callback.getFrom().getId();
@@ -77,9 +82,63 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
                     return sendMessage;
                 }
             }
-            default -> sendMessage.setText("Unknown command");
+            case "add_room" -> {
+                if (user.getRole().equals(Role.USER)) {
+                    sendMessage.setText("Unknown command");
+                    return sendMessage;
+                }
+                messageHandler.roomCreateMap.put(chatId, new RoomDto());
+                adminState.put(chatId, State.ROOM_NUMBER);
+                sendMessage.setText("Enter room number: ");
+                return sendMessage;
+            }
+            default -> {
+                handleOtherCallBack(chatId, messageId, data, languageCode, sendMessage);
+            }
         }
         return sendMessage;
+    }
+
+    private void handleOtherCallBack(long chatId, int messageId, String data, String languageCode, SendMessage sendMessage) {
+
+
+        if (data.startsWith("ROOM_ID_#")) {
+            String[] split = data.split("#");
+            Long roomId = Long.parseLong(split[1]);
+            RoomDto roomDto = roomService.findById(roomId);
+            StringBuilder sb = new StringBuilder();
+            sb.append("Room number: ").append(roomDto.getRoomNumber()).append("\n");
+            sb.append("Description: ").append(roomDto.getDescription()).append("\n");
+            sb.append("Max seats: ").append(roomDto.getMaxSeats()).append("\n");
+            sb.append("Min seats: ").append(roomDto.getMinSeats()).append("\n");
+            sb.append("Open time: ").append(roomDto.getOpenTime()).append("\n");
+            sb.append("Close time: ").append(roomDto.getCloseTime()).append("\n");
+            InlineKeyboardMarkup keyboardMarkup = inlineKeyboardMarkupFactory.roomMenu(chatId, roomId, languageCode);
+            sendMessage.setText(sb.toString());
+            sendMessage.setReplyMarkup(keyboardMarkup);
+        } else if (data.contains("_PAGE#")) {
+            String[] split = data.split("#");
+            int page = Integer.parseInt(split[1]);
+            Page<Room> rooms = roomService.getAllRooms(page, chatId, true);
+            if (rooms.getTotalElements() == 0) {
+                sendMessage.setText("There are no rooms");
+                return;
+            }
+            InlineKeyboardMarkup factoryRoomsList = inlineKeyboardMarkupFactory.createRoomsList(rooms, chatId, languageCode);
+            sendMessage.setReplyMarkup(factoryRoomsList);
+            sendMessage.setText("Rooms list: ");
+        } /*else if (data.startsWith("PREV_PAGE#")) {
+            String[] split = data.split("#");
+            int page = Integer.parseInt(split[1]);
+            Page<Room> rooms = roomService.getAllRooms(page, chatId, true);
+            if (rooms.getTotalElements() == 0) {
+                sendMessage.setText("There are no rooms");
+                return;
+            }
+            InlineKeyboardMarkup factoryRoomsList = inlineKeyboardMarkupFactory.createRoomsList(rooms, chatId, languageCode);
+            sendMessage.setReplyMarkup(factoryRoomsList);
+            sendMessage.setText("Rooms list: ");
+        }*/
     }
 
     /*private SendMessage handleAdminCallBack(long chatId, int messageId, String data, String systemLanguageCode) {

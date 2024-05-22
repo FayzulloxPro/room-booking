@@ -30,6 +30,7 @@ public class RoomService {
                 .minSeats(dto.getMinSeats())
                 .openTime(dto.getOpenTime())
                 .closeTime(dto.getCloseTime())
+                        .available(true)
                 .build());
         return save;
     }
@@ -68,8 +69,12 @@ public class RoomService {
         return roomRepository.save(room);
     }
 
-    public Page<Room> getAllRooms(int page, int size, Long chatId, boolean isTelegramRequest) {
+    private Page<Room> getAllRooms(int page, int size, Long chatId, boolean isTelegramRequest) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("roomNumber").ascending());
+        return roomRepository.findAll(pageRequest);
+    }
+    public Page<Room> getAllRooms(int page, Long chatId, boolean isTelegramRequest) {
+        PageRequest pageRequest = PageRequest.of(page, DEFAULT_SIZE, Sort.by("roomNumber").ascending());
         return roomRepository.findAll(pageRequest);
     }
     public Page<Room> getAllRooms(Long chatId, boolean isTelegramRequest) {

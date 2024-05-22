@@ -2,8 +2,11 @@ package dev.fayzullokh.roombooking.bot.bothandler;
 
 import dev.fayzullokh.roombooking.bot.enums.UserBotState;
 import dev.fayzullokh.roombooking.bot.utils.InlineKeyboardMarkupFactory;
+import dev.fayzullokh.roombooking.config.StateManagement;
+import dev.fayzullokh.roombooking.dtos.RoomDto;
 import dev.fayzullokh.roombooking.entities.User;
 import dev.fayzullokh.roombooking.enums.Role;
+import dev.fayzullokh.roombooking.enums.State;
 import dev.fayzullokh.roombooking.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -26,7 +29,10 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
 
     private final InlineKeyboardMarkupFactory inlineKeyboardMarkupFactory;
     private final UserService userService;
+    private final StateManagement stateManagement;
+    public final Map<Long, State> adminStateMap = stateManagement.getAdminState();
 
+    public final Map<Long, RoomDto> roomCreateMap = new HashMap<>();
 
     @Override
     public BotApiMethod<Message> handle(Update update) {
@@ -115,7 +121,62 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
             sendMessage.setParseMode("HTML");
             return sendMessage;
         }
-        return new SendMessage(userChatId, "No such command");
+        User userByChatId = userService.getUserByChatId(chatId, true);
+        if (Objects.isNull(userByChatId)) {
+            return new SendMessage(userChatId, "No such command");
+        }
+        if (!userByChatId.getRole().equals(Role.USER)) {
+            State state = adminStateMap.get(chatId);
+            if (Objects.isNull(state)) {
+                return new SendMessage(String.valueOf(chatId), "No such command");
+            }
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setChatId(String.valueOf(chatId));
+            switch (state) {
+                case ROOM_NUMBER -> {
+                    handleCreateRoom(chatId, text, sendMessage);
+                }
+                case DESCRIPTION -> {
+
+                    handleCreateRoomSuccess(chatId, text);
+                }
+                case MAX_SEATS -> {
+
+                    handleCreateRoomFailed(chatId, text);
+                }
+                case MIN_SEATS -> {
+
+                    handleDeleteRoom(chatId, text);
+                }
+                case OPEN_TIME-> {
+
+                    handleDeleteRoomSuccess(chatId, text);
+                }
+                case CLOSE_TIME-> {
+
+                }
+                default -> {
+
+                }
+            }
+        }
+        return null;
+    }
+
+    private void handleCreateRoom(long chatId, String text, SendMessage sendMessage) {
+        RoomDto roomDto = roomCreateMap.get(chatId);
+        if (roomDto == null) {
+            RoomDto dto = new RoomDto();
+            roomCreateMap.put(chatId, dto);
+            if (text.isBlank() || text.isEmpty()){
+                sendMessage.setText("Room number can not be blank. Send room number:");
+                return;
+            }
+            dto.setRoomNumber(text);
+            adminStateMap.put(chatId, State.DESCRIPTION);
+            sendMessage.setText("Send room description:");
+            return;
+        }
     }
 
     private SendMessage handleLoginMessage(long chatId, String languageCode) {
