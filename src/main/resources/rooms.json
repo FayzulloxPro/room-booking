@@ -3,240 +3,180 @@
     "roomNumber": "101",
     "description": "Spacious room with projector",
     "maxSeats": 50,
-    "minSeats": 10,
-    "openTime": "08:00",
-    "closeTime": "18:00"
+    "minSeats": 10
   },
   {
     "roomNumber": "102",
     "description": "Medium-sized room with whiteboard",
     "maxSeats": 30,
-    "minSeats": 5,
-    "openTime": "09:00",
-    "closeTime": "17:00"
+    "minSeats": 5
   },
   {
     "roomNumber": "103",
     "description": "Small meeting room with TV",
     "maxSeats": 20,
-    "minSeats": 5,
-    "openTime": "08:30",
-    "closeTime": "17:30"
+    "minSeats": 5
   },
   {
     "roomNumber": "104",
     "description": "Large conference room with video conferencing",
     "maxSeats": 100,
-    "minSeats": 20,
-    "openTime": "07:00",
-    "closeTime": "19:00"
+    "minSeats": 20
   },
   {
     "roomNumber": "105",
     "description": "Cozy room with bean bags",
     "maxSeats": 10,
-    "minSeats": 2,
-    "openTime": "10:00",
-    "closeTime": "16:00"
+    "minSeats": 2
   },
   {
     "roomNumber": "106",
     "description": "Modern room with smartboard",
     "maxSeats": 40,
-    "minSeats": 10,
-    "openTime": "08:00",
-    "closeTime": "18:00"
+    "minSeats": 10
   },
   {
     "roomNumber": "107",
     "description": "Training room with computers",
     "maxSeats": 25,
-    "minSeats": 5,
-    "openTime": "09:00",
-    "closeTime": "17:00"
+    "minSeats": 5
   },
   {
     "roomNumber": "108",
     "description": "Executive meeting room",
     "maxSeats": 15,
-    "minSeats": 4,
-    "openTime": "08:00",
-    "closeTime": "17:00"
+    "minSeats": 4
   },
   {
     "roomNumber": "109",
     "description": "Creative space with art supplies",
     "maxSeats": 20,
-    "minSeats": 5,
-    "openTime": "09:00",
-    "closeTime": "18:00"
+    "minSeats": 5
   },
   {
     "roomNumber": "110",
     "description": "Quiet room with soundproofing",
     "maxSeats": 10,
-    "minSeats": 2,
-    "openTime": "08:00",
-    "closeTime": "20:00"
+    "minSeats": 2
   },
   {
     "roomNumber": "111",
     "description": "Bright room with natural light",
     "maxSeats": 30,
-    "minSeats": 6,
-    "openTime": "07:30",
-    "closeTime": "19:30"
+    "minSeats": 6
   },
   {
     "roomNumber": "112",
     "description": "Room with adjustable lighting",
     "maxSeats": 25,
-    "minSeats": 5,
-    "openTime": "08:00",
-    "closeTime": "18:00"
+    "minSeats": 5
   },
   {
     "roomNumber": "113",
     "description": "Room with comfortable seating",
     "maxSeats": 35,
-    "minSeats": 7,
-    "openTime": "09:00",
-    "closeTime": "17:00"
+    "minSeats": 7
   },
   {
     "roomNumber": "114",
     "description": "Room with interactive display",
     "maxSeats": 40,
-    "minSeats": 10,
-    "openTime": "08:00",
-    "closeTime": "18:00"
+    "minSeats": 10
   },
   {
     "roomNumber": "115",
     "description": "Room with teleconferencing equipment",
     "maxSeats": 50,
-    "minSeats": 12,
-    "openTime": "08:00",
-    "closeTime": "19:00"
+    "minSeats": 12
   },
   {
     "roomNumber": "116",
     "description": "Workshop room with tools",
     "maxSeats": 20,
-    "minSeats": 4,
-    "openTime": "08:00",
-    "closeTime": "17:00"
+    "minSeats": 4
   },
   {
     "roomNumber": "117",
     "description": "Room with gaming consoles",
     "maxSeats": 15,
-    "minSeats": 3,
-    "openTime": "10:00",
-    "closeTime": "22:00"
+    "minSeats": 3
   },
   {
     "roomNumber": "118",
     "description": "Room with flexible seating arrangements",
     "maxSeats": 45,
-    "minSeats": 9,
-    "openTime": "08:00",
-    "closeTime": "18:00"
+    "minSeats": 9
   },
   {
     "roomNumber": "119",
     "description": "Room with library setup",
     "maxSeats": 20,
-    "minSeats": 5,
-    "openTime": "09:00",
-    "closeTime": "17:00"
+    "minSeats": 5
   },
   {
     "roomNumber": "120",
     "description": "Conference room with video conferencing",
     "maxSeats": 60,
-    "minSeats": 15,
-    "openTime": "07:00",
-    "closeTime": "19:00"
+    "minSeats": 15
   },
   {
     "roomNumber": "121",
     "description": "Room with collaborative workspace",
     "maxSeats": 30,
-    "minSeats": 8,
-    "openTime": "08:00",
-    "closeTime": "18:00"
+    "minSeats": 8
   },
   {
     "roomNumber": "122",
     "description": "Room with round table setup",
     "maxSeats": 20,
-    "minSeats": 5,
-    "openTime": "09:00",
-    "closeTime": "17:00"
+    "minSeats": 5
   },
   {
     "roomNumber": "123",
     "description": "Room with stadium seating",
     "maxSeats": 100,
-    "minSeats": 25,
-    "openTime": "08:00",
-    "closeTime": "20:00"
+    "minSeats": 25
   },
   {
     "roomNumber": "124",
     "description": "Room with VR equipment",
     "maxSeats": 15,
-    "minSeats": 3,
-    "openTime": "10:00",
-    "closeTime": "18:00"
+    "minSeats": 3
   },
   {
     "roomNumber": "125",
     "description": "Room with bean bags and cushions",
     "maxSeats": 10,
-    "minSeats": 2,
-    "openTime": "08:00",
-    "closeTime": "16:00"
+    "minSeats": 2
   },
   {
     "roomNumber": "126",
     "description": "Room with outdoor view",
     "maxSeats": 25,
-    "minSeats": 5,
-    "openTime": "09:00",
-    "closeTime": "17:00"
+    "minSeats": 5
   },
   {
     "roomNumber": "127",
     "description": "Room with ergonomic chairs",
     "maxSeats": 30,
-    "minSeats": 6,
-    "openTime": "08:00",
-    "closeTime": "18:00"
+    "minSeats": 6
   },
   {
     "roomNumber": "128",
     "description": "Room with café-style seating",
     "maxSeats": 20,
-    "minSeats": 5,
-    "openTime": "09:00",
-    "closeTime": "17:00"
+    "minSeats": 5
   },
   {
     "roomNumber": "129",
     "description": "Room with workshop tools",
     "maxSeats": 15,
-    "minSeats": 3,
-    "openTime": "08:00",
-    "closeTime": "17:00"
+    "minSeats": 3
   },
   {
     "roomNumber": "130",
     "description": "Room with bean bags and cushions",
     "maxSeats": 10,
-    "minSeats": 2,
-    "openTime": "10:00",
-    "closeTime": "18:00"
+    "minSeats": 2
   }
 ]

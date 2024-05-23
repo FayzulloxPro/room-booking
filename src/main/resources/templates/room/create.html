@@ -29,7 +29,7 @@
         <input type="number" id="minSeats" th:field="*{minSeats}" required>
         <span th:if="${#fields.hasErrors('minSeats')}" th:errors="*{minSeats}"></span>
     </div>
-    <div>
+    <!--<div>
         <label for="openTime">Open Time:</label>
         <input type="time" id="openTime" th:field="*{openTime}" required>
         <span th:if="${#fields.hasErrors('openTime')}" th:errors="*{openTime}"></span>
@@ -38,7 +38,7 @@
         <label for="closeTime">Close Time:</label>
         <input type="time" id="closeTime" th:field="*{closeTime}" required>
         <span th:if="${#fields.hasErrors('closeTime')}" th:errors="*{closeTime}"></span>
-    </div>
+    </div>-->
     <button type="submit">Create</button>
 </form>
 

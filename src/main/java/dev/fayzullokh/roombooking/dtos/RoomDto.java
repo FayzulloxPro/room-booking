@@ -27,9 +27,9 @@ public class RoomDto {
     @Min(value = 1, message = "Min seats must be at least 1")
     private short minSeats;
 
-    @NotNull(message = "Open time must be specified")
+    /*@NotNull(message = "Open time must be specified")
     private LocalTime openTime;
 
     @NotNull(message = "Close time must be specified")
-    private LocalTime closeTime;
+    private LocalTime closeTime;*/
 }

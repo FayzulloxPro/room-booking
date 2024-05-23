@@ -28,8 +28,8 @@
                 <th>Description</th>
                 <th>Max Seats</th>
                 <th>Min Seats</th>
-                <th>Open Time</th>
-                <th>Close Time</th>
+                <!--<th>Open Time</th>
+                <th>Close Time</th>-->
                 <th th:if="${role eq 'ADMIN'}">Change</th>
             </tr>
             </thead>
@@ -40,8 +40,8 @@
                 <td th:text="${room.description}"></td>
                 <td th:text="${room.maxSeats}"></td>
                 <td th:text="${room.minSeats}"></td>
-                <td th:text="${room.openTime}"></td>
-                <td th:text="${room.closeTime}"></td>
+                <!--<td th:text="${room.openTime}"></td>
+                <td th:text="${room.closeTime}"></td>-->
                 <td>
                     <!-- Button to open modal for updating room -->
                     <button type="button" class="btn btn-primary update-button" th:if="${role eq 'ADMIN'}"
@@ -92,14 +92,14 @@
                         <label for="updateMinSeats">Min Seats:</label>
                         <input type="number" class="form-control" id="updateMinSeats" required>
                     </div>
-                    <div class="form-group">
+                    <!--<div class="form-group">
                         <label for="updateOpenTime">Open Time:</label>
                         <input type="time" class="form-control" id="updateOpenTime" required>
                     </div>
                     <div class="form-group">
                         <label for="updateCloseTime">Close Time:</label>
                         <input type="time" class="form-control" id="updateCloseTime" required>
-                    </div>
+                    </div>-->
                     <button type="submit" class="btn btn-primary" th:if="${role eq 'ADMIN'}">
                         Update
                     </button>
@@ -173,8 +173,8 @@
                 modalElements.description.val(response.description);
                 modalElements.maxSeats.val(response.maxSeats);
                 modalElements.minSeats.val(response.minSeats);
-                modalElements.openTime.val(response.openTime);
-                modalElements.closeTime.val(response.closeTime);
+                /*modalElements.openTime.val(response.openTime);
+                modalElements.closeTime.val(response.closeTime);*/
             },
             error: function(xhr, status, error) {
                 onAjaxError(error);
@@ -187,8 +187,8 @@
         modalElements.description.val(null);
         modalElements.maxSeats.val(null);
         modalElements.minSeats.val(null);
-        modalElements.openTime.val(null);
-        modalElements.closeTime.val(null);
+        /*modalElements.openTime.val(null);
+        modalElements.closeTime.val(null);*/
         modalElements.form.css("display", "block");
         modalElements.error.css("display", "none");
         modalElements.success.css("display", "none");
@@ -204,8 +204,8 @@
                 description: modalElements.description.val(),
                 maxSeats: modalElements.maxSeats.val(),
                 minSeats: modalElements.minSeats.val(),
-                openTime: modalElements.openTime.val(),
-                closeTime: modalElements.closeTime.val(),
+                /*openTime: modalElements.openTime.val(),
+                closeTime: modalElements.closeTime.val(),*/
             })
 
             if (modalData.id !== null) {

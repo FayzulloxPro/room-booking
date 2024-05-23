@@ -29,11 +29,11 @@ public class Room extends BaseEntityAudit {
 
     @Column(name = "min_seats")
     private short minSeats;
-    @Column(name = "open_time")
+    /*@Column(name = "open_time")
     private LocalTime openTime;
 
     @Column(name = "close_time")
-    private LocalTime closeTime;
+    private LocalTime closeTime;*/
 
     @Column(name = "available", columnDefinition = "boolean default true")
     private boolean available;

@@ -117,4 +117,37 @@ public class InlineKeyboardMarkupFactory {
         markupInline.setKeyboard(rowsInline);
         return markupInline;
     }
+
+    public InlineKeyboardMarkup createRoomConfirmation(long chatId) {
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> footerLine = new ArrayList<>();
+        ArrayList<InlineKeyboardButton> updateButtons = new ArrayList<>();
+
+        updateButtons.add(
+                getInlineButton("Update room number", "update_create_room_number")
+        );
+        updateButtons.add(
+                getInlineButton("Update description", "update_create_room_description")
+        );
+        rowsInline.add(updateButtons);
+        updateButtons = new ArrayList<>();
+
+        updateButtons.add(
+                getInlineButton("Update max seats", "update_create_room_max_seats")
+        );
+        updateButtons.add(
+                getInlineButton("Update min seats", "update_create_room_min_seats")
+        );
+        rowsInline.add(updateButtons);
+        footerLine.add(
+                getInlineButton("Yes", "confirm_room_creation")
+        );
+        footerLine.add(
+                getInlineButton("No", "cancel_room_creation")
+        );
+        rowsInline.add(footerLine);
+        markupInline.setKeyboard(rowsInline);
+        return markupInline;
+    }
 }

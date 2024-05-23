@@ -2,12 +2,12 @@ package dev.fayzullokh.roombooking.bot.bothandler;
 
 import dev.fayzullokh.roombooking.bot.enums.UserBotState;
 import dev.fayzullokh.roombooking.bot.utils.InlineKeyboardMarkupFactory;
-import dev.fayzullokh.roombooking.config.StateManagement;
 import dev.fayzullokh.roombooking.dtos.RoomDto;
 import dev.fayzullokh.roombooking.entities.User;
 import dev.fayzullokh.roombooking.enums.Role;
 import dev.fayzullokh.roombooking.enums.State;
 import dev.fayzullokh.roombooking.services.UserService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -29,10 +29,10 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
 
     private final InlineKeyboardMarkupFactory inlineKeyboardMarkupFactory;
     private final UserService userService;
-    private final StateManagement stateManagement;
-    public final Map<Long, State> adminStateMap = stateManagement.getAdminState();
-
-    public final Map<Long, RoomDto> roomCreateMap = new HashMap<>();
+    @Getter
+    private final Map<Long, State> adminState = new HashMap<>();
+    @Getter
+    private final Map<Long, RoomDto> roomCreateMap = new HashMap<>();
 
     @Override
     public BotApiMethod<Message> handle(Update update) {
@@ -126,7 +126,7 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
             return new SendMessage(userChatId, "No such command");
         }
         if (!userByChatId.getRole().equals(Role.USER)) {
-            State state = adminStateMap.get(chatId);
+            State state = adminState.get(chatId);
             if (Objects.isNull(state)) {
                 return new SendMessage(String.valueOf(chatId), "No such command");
             }
@@ -134,48 +134,142 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
             sendMessage.setChatId(String.valueOf(chatId));
             switch (state) {
                 case ROOM_NUMBER -> {
-                    handleCreateRoom(chatId, text, sendMessage);
+                    handleCreateRoom(chatId, text, sendMessage, false);
                 }
                 case DESCRIPTION -> {
-
-                    handleCreateRoomSuccess(chatId, text);
+                    handleInDescription(chatId, text, sendMessage, false);
                 }
                 case MAX_SEATS -> {
 
-                    handleCreateRoomFailed(chatId, text);
+                    handleMaxSeats(chatId, text, sendMessage, false);
                 }
                 case MIN_SEATS -> {
-
-                    handleDeleteRoom(chatId, text);
+                    handleMinSeats(chatId, text, sendMessage, false);
                 }
-                case OPEN_TIME-> {
 
-                    handleDeleteRoomSuccess(chatId, text);
+                case SINGLE_ROOM_NUMBER -> {
+                    handleCreateRoom(chatId, text, sendMessage, true);
                 }
-                case CLOSE_TIME-> {
-
+                case SINGLE_DESCRIPTION -> {
+                    handleInDescription(chatId, text, sendMessage, true);
+                }
+                case SINGLE_MAX_SEATS -> {
+                    handleMaxSeats(chatId, text, sendMessage, true);
+                }
+                case SINGLE_MIN_SEATS -> {
+                    handleMinSeats(chatId, text, sendMessage, true);
                 }
                 default -> {
-
+                    sendMessage.setText("Something went wrong");
                 }
             }
+            return sendMessage;
         }
         return null;
     }
 
-    private void handleCreateRoom(long chatId, String text, SendMessage sendMessage) {
+
+    private void handleMinSeats(long chatId, String text, SendMessage sendMessage, boolean isSingle) {
+        try {
+            short minSeats = Short.parseShort(text);
+            RoomDto roomDto = roomCreateMap.get(chatId);
+            if (minSeats < 1) {
+                sendMessage.setText("Maximum number of seats can not be less than 1. Send maximum number of seats:");
+                return;
+            }
+            roomDto.setMinSeats(minSeats);
+            adminState.put(chatId, State.MIN_SEATS);
+            String string = "Do you confirm these data?\n\n";
+            String sb = "Room number: " + roomDto.getRoomNumber() + "\n" +
+                    "Room description: " + roomDto.getDescription() + "\n" +
+                    "Max seats: " + roomDto.getMaxSeats() + "\n" +
+                    "Min seats: " + roomDto.getMinSeats() + "\n";
+            sendMessage.setText(string + sb);
+            sendMessage.setReplyMarkup(inlineKeyboardMarkupFactory.createRoomConfirmation(chatId));
+        } catch (NumberFormatException e) {
+            sendMessage.setText("Wrong number of max seats\nSend again:");
+        }
+    }
+
+    private void handleMaxSeats(long chatId, String text, SendMessage sendMessage, boolean isSingle) {
+        try {
+            short maxSeats = Short.parseShort(text);
+            RoomDto roomDto = roomCreateMap.get(chatId);
+            if (maxSeats < 1) {
+                sendMessage.setText("Maximum number of seats can not be less than 1. \nSend maximum number of seats:");
+                return;
+            }
+            if (!isSingle) {
+
+                roomDto.setMaxSeats(maxSeats);
+                adminState.put(chatId, State.MIN_SEATS);
+                sendMessage.setText("Max seats accepted\nSend minimum number of seats:");
+            } else {
+                String string = "Do you confirm these data?\n\n";
+                String sb = "Room number: " + roomDto.getRoomNumber() + "\n" +
+                        "Room description: " + roomDto.getDescription() + "\n" +
+                        "Max seats: " + roomDto.getMaxSeats() + "\n" +
+                        "Min seats: " + roomDto.getMinSeats() + "\n";
+                sendMessage.setText(string + sb);
+                sendMessage.setReplyMarkup(inlineKeyboardMarkupFactory.createRoomConfirmation(chatId));
+            }
+        } catch (NumberFormatException e) {
+            sendMessage.setText("Wrong number of max seats\nSend again:");
+        }
+    }
+
+    private void handleInDescription(long chatId, String text, SendMessage sendMessage, boolean isSingle) {
+        RoomDto roomDto = roomCreateMap.get(chatId);
+        if (text.isBlank() || text.isEmpty()) {
+            sendMessage.setText("Room description can not be blank. Send room description:");
+            return;
+        }
+        if (!isSingle) {
+
+            roomDto.setDescription(text);
+            adminState.put(chatId, State.MAX_SEATS);
+            sendMessage.setText("Description accepted\nSend room max seats:");
+        } else {
+            String string = "Do you confirm these data?\n\n";
+            String sb = "Room number: " + roomDto.getRoomNumber() + "\n" +
+                    "Room description: " + roomDto.getDescription() + "\n" +
+                    "Max seats: " + roomDto.getMaxSeats() + "\n" +
+                    "Min seats: " + roomDto.getMinSeats() + "\n";
+            sendMessage.setText(string + sb);
+            sendMessage.setReplyMarkup(inlineKeyboardMarkupFactory.createRoomConfirmation(chatId));
+        }
+    }
+
+    private void handleCreateRoom(long chatId, String text, SendMessage sendMessage, boolean isSingle) {
         RoomDto roomDto = roomCreateMap.get(chatId);
         if (roomDto == null) {
             RoomDto dto = new RoomDto();
             roomCreateMap.put(chatId, dto);
-            if (text.isBlank() || text.isEmpty()){
+            if (text.isBlank() || text.isEmpty()) {
                 sendMessage.setText("Room number can not be blank. Send room number:");
                 return;
             }
             dto.setRoomNumber(text);
-            adminStateMap.put(chatId, State.DESCRIPTION);
+            adminState.put(chatId, State.DESCRIPTION);
             sendMessage.setText("Send room description:");
             return;
+        }
+        if (text.isBlank() || text.isEmpty()) {
+            sendMessage.setText("Room description can not be blank. Send room description:");
+            return;
+        }
+        if (!isSingle) {
+            roomDto.setRoomNumber(text);
+            adminState.put(chatId, State.DESCRIPTION);
+            sendMessage.setText("Room number accepted\nSend room description:");
+        } else {
+            String string = "Do you confirm these data?\n\n";
+            String sb = "Room number: " + roomDto.getRoomNumber() + "\n" +
+                    "Room description: " + roomDto.getDescription() + "\n" +
+                    "Max seats: " + roomDto.getMaxSeats() + "\n" +
+                    "Min seats: " + roomDto.getMinSeats() + "\n";
+            sendMessage.setText(string + sb);
+            sendMessage.setReplyMarkup(inlineKeyboardMarkupFactory.createRoomConfirmation(chatId));
         }
     }
 
@@ -208,11 +302,6 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
         return new SendMessage(String.valueOf(chatId), "Welcome " + user.getUsername());
     }
 
-    /*private User createUser(long chatId, Update update) {
-        org.telegram.telegrambots.meta.api.objects.User from = update.getMessage().getFrom();
-        User user = User.builder().id(chatId).firstName(from.getFirstName()).lastName(from.getLastName()).username(from.getUserName()).systemLanguageCode(from.getLanguageCode()).build();
-        return userService.create(user);
-    }*/
 
     private BotApiMethod<Message> handleContact(Update update) {
         Message message = update.getMessage();

@@ -37,7 +37,7 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
 
     @Override
     public BotApiMethod<Message> handle(Update update) {
-        Map<Long, State> adminState = stateManagement.getAdminState();
+        Map<Long, State> adminState = messageHandler.getAdminState();
 
         CallbackQuery callback = update.getCallbackQuery();
         long chatId = callback.getFrom().getId();
@@ -87,9 +87,24 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
                     sendMessage.setText("Unknown command");
                     return sendMessage;
                 }
-                messageHandler.roomCreateMap.put(chatId, new RoomDto());
+                messageHandler.getRoomCreateMap().put(chatId, new RoomDto());
                 adminState.put(chatId, State.ROOM_NUMBER);
                 sendMessage.setText("Enter room number: ");
+                return sendMessage;
+            }
+            case "confirm_room_creation" -> {
+                RoomDto roomDto = messageHandler.getRoomCreateMap().get(chatId);
+                adminState.remove(chatId);
+                if (roomDto == null) {
+                    sendMessage.setText("Unknown command");
+                    return sendMessage;
+                }
+                try {
+                    roomService.create(roomDto);
+                    sendMessage.setText("Room created successfully");
+                } catch (Exception e) {
+                    sendMessage.setText("Error while creating room. Try again");
+                }
                 return sendMessage;
             }
             default -> {
@@ -101,6 +116,10 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
 
     private void handleOtherCallBack(long chatId, int messageId, String data, String languageCode, SendMessage sendMessage) {
 
+        if (data.startsWith("update_create_room")) {
+            createRoomUpdateFields(chatId, messageId, data, languageCode, sendMessage);
+            return;
+        }
 
         if (data.startsWith("ROOM_ID_#")) {
             String[] split = data.split("#");
@@ -111,8 +130,8 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
             sb.append("Description: ").append(roomDto.getDescription()).append("\n");
             sb.append("Max seats: ").append(roomDto.getMaxSeats()).append("\n");
             sb.append("Min seats: ").append(roomDto.getMinSeats()).append("\n");
-            sb.append("Open time: ").append(roomDto.getOpenTime()).append("\n");
-            sb.append("Close time: ").append(roomDto.getCloseTime()).append("\n");
+            /*sb.append("Open time: ").append(roomDto.getOpenTime()).append("\n");
+            sb.append("Close time: ").append(roomDto.getCloseTime()).append("\n");*/
             InlineKeyboardMarkup keyboardMarkup = inlineKeyboardMarkupFactory.roomMenu(chatId, roomId, languageCode);
             sendMessage.setText(sb.toString());
             sendMessage.setReplyMarkup(keyboardMarkup);
@@ -127,18 +146,31 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
             InlineKeyboardMarkup factoryRoomsList = inlineKeyboardMarkupFactory.createRoomsList(rooms, chatId, languageCode);
             sendMessage.setReplyMarkup(factoryRoomsList);
             sendMessage.setText("Rooms list: ");
-        } /*else if (data.startsWith("PREV_PAGE#")) {
-            String[] split = data.split("#");
-            int page = Integer.parseInt(split[1]);
-            Page<Room> rooms = roomService.getAllRooms(page, chatId, true);
-            if (rooms.getTotalElements() == 0) {
-                sendMessage.setText("There are no rooms");
-                return;
+        }
+    }
+
+    private void createRoomUpdateFields(long chatId, int messageId, String data, String languageCode, SendMessage sendMessage) {
+        Map<Long, State> adminState = messageHandler.getAdminState();
+        sendMessage.setChatId(String.valueOf(chatId));
+        switch (data) {
+            case "update_create_room_number" -> {
+                adminState.put(chatId, State.SINGLE_ROOM_NUMBER);
+                sendMessage.setText("Enter room number: ");
             }
-            InlineKeyboardMarkup factoryRoomsList = inlineKeyboardMarkupFactory.createRoomsList(rooms, chatId, languageCode);
-            sendMessage.setReplyMarkup(factoryRoomsList);
-            sendMessage.setText("Rooms list: ");
-        }*/
+            case "update_create_room_description" -> {
+                adminState.put(chatId, State.SINGLE_DESCRIPTION);
+                sendMessage.setText("Enter room description: ");
+            }
+            case "update_create_room_max_seats" -> {
+                adminState.put(chatId, State.SINGLE_MAX_SEATS);
+                sendMessage.setText("Enter maximum number of seats: ");
+            }
+            case "update_create_room_min_seats" -> {
+                adminState.put(chatId, State.SINGLE_MIN_SEATS);
+                sendMessage.setText("Enter minimum number of seats: ");
+            }
+            default -> sendMessage.setText("Something went wrong");
+        }
     }
 
     /*private SendMessage handleAdminCallBack(long chatId, int messageId, String data, String systemLanguageCode) {

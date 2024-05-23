@@ -26,11 +26,11 @@ public class RoomService {
         Room save = roomRepository.save(Room.builder()
                 .roomNumber(dto.getRoomNumber())
                 .description(dto.getDescription())
-                .maxSeats(dto.getMaxSeats())
-                .minSeats(dto.getMinSeats())
-                .openTime(dto.getOpenTime())
-                .closeTime(dto.getCloseTime())
-                        .available(true)
+                .maxSeats((short) Math.max(dto.getMaxSeats(), dto.getMinSeats()))
+                .minSeats((short) Math.min(dto.getMaxSeats(), dto.getMinSeats()))
+                /*.openTime(dto.getOpenTime())
+                .closeTime(dto.getCloseTime())*/
+                .available(true)
                 .build());
         return save;
     }
@@ -50,9 +50,9 @@ public class RoomService {
                 room.getRoomNumber(),
                 room.getDescription(),
                 room.getMaxSeats(),
-                room.getMinSeats(),
+                room.getMinSeats()/*,
                 room.getOpenTime(),
-                room.getCloseTime()
+                room.getCloseTime()*/
         );
     }
 
@@ -63,8 +63,8 @@ public class RoomService {
         room.setDescription(dto.getDescription());
         room.setMaxSeats(dto.getMaxSeats());
         room.setMinSeats(dto.getMinSeats());
-        room.setOpenTime(dto.getOpenTime());
-        room.setCloseTime(dto.getCloseTime());
+        /*room.setOpenTime(dto.getOpenTime());
+        room.setCloseTime(dto.getCloseTime());*/
 
         return roomRepository.save(room);
     }
@@ -73,10 +73,12 @@ public class RoomService {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("roomNumber").ascending());
         return roomRepository.findAll(pageRequest);
     }
+
     public Page<Room> getAllRooms(int page, Long chatId, boolean isTelegramRequest) {
         PageRequest pageRequest = PageRequest.of(page, DEFAULT_SIZE, Sort.by("roomNumber").ascending());
         return roomRepository.findAll(pageRequest);
     }
+
     public Page<Room> getAllRooms(Long chatId, boolean isTelegramRequest) {
         return getAllRooms(DEFAULT_PAGE, DEFAULT_SIZE, chatId, isTelegramRequest);
     }
