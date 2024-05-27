@@ -21,7 +21,7 @@ public class Room extends BaseEntityAudit {
     @Column(name = "room_number", unique = true)
     private String roomNumber;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "max_seats")

@@ -100,11 +100,21 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
                     return sendMessage;
                 }
                 try {
-                    roomService.create(roomDto);
-                    sendMessage.setText("Room created successfully");
+                    Room room = roomService.create(roomDto);
+                    String sb = "Room created successfully:\n\n" + "Room number: " + room.getRoomNumber() + "\n" +
+                            "Description: " + room.getDescription() + "\n" +
+                            "Max seats: " + room.getMaxSeats() + "\n" +
+                            "Min seats: " + room.getMinSeats() + "\n";
+                    sendMessage.setText(sb);
                 } catch (Exception e) {
                     sendMessage.setText("Error while creating room. Try again");
                 }
+                return sendMessage;
+            }
+            case "cancel_room_creation" -> {
+                messageHandler.getRoomCreateMap().remove(chatId);
+                adminState.remove(chatId);
+                sendMessage.setText("Creating room canceled ");
                 return sendMessage;
             }
             default -> {

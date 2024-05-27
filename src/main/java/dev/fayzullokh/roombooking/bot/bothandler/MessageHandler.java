@@ -59,6 +59,7 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
             case "/login" -> handleLoginMessage(chatId, languageCode);
             case "/logout" -> handleLogoutMessage(chatId, languageCode);
             case "/admin" -> handleAdminMessage(chatId, languageCode);
+            case "/profile" -> handleProfileMessage(chatId, languageCode);
 //            case "/admin" -> new SendMessage();
             default -> {
                 SendMessage handledPlainText = handlePlainText(chatId, languageCode, text);
@@ -75,6 +76,14 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
             }
         };
         return sendMessage;
+    }
+
+    private SendMessage handleProfileMessage(long chatId, String languageCode) {
+        User userByChatId = userService.getUserByChatId(chatId, true);
+        if (Objects.isNull(userByChatId)){
+            return new SendMessage(String.valueOf(chatId), "You are not logged in.\nSend /login to login");
+        }
+
     }
 
     private SendMessage handleAdminMessage(long chatId, String languageCode) {
@@ -199,9 +208,8 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
                 sendMessage.setText("Maximum number of seats can not be less than 1. \nSend maximum number of seats:");
                 return;
             }
+            roomDto.setMaxSeats(maxSeats);
             if (!isSingle) {
-
-                roomDto.setMaxSeats(maxSeats);
                 adminState.put(chatId, State.MIN_SEATS);
                 sendMessage.setText("Max seats accepted\nSend minimum number of seats:");
             } else {
@@ -230,6 +238,7 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
             adminState.put(chatId, State.MAX_SEATS);
             sendMessage.setText("Description accepted\nSend room max seats:");
         } else {
+            roomDto.setDescription(text);
             String string = "Do you confirm these data?\n\n";
             String sb = "Room number: " + roomDto.getRoomNumber() + "\n" +
                     "Room description: " + roomDto.getDescription() + "\n" +
@@ -263,6 +272,7 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
             adminState.put(chatId, State.DESCRIPTION);
             sendMessage.setText("Room number accepted\nSend room description:");
         } else {
+            roomDto.setRoomNumber(text);
             String string = "Do you confirm these data?\n\n";
             String sb = "Room number: " + roomDto.getRoomNumber() + "\n" +
                     "Room description: " + roomDto.getDescription() + "\n" +
