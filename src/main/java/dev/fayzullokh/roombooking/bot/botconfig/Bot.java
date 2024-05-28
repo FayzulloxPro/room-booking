@@ -49,7 +49,6 @@ public class Bot extends TelegramLongPollingBot {
             } else if (data.equals("logout")) {
                 DeleteMessage deleteMessage = deleteCallBackHandler.handle(update);
                 send(deleteMessage);
-                return;
             }
             BotApiMethod<Message> handle = messageCallBackHandler.handle(update);
             send(handle);

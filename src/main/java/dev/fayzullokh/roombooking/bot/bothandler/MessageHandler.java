@@ -3,12 +3,15 @@ package dev.fayzullokh.roombooking.bot.bothandler;
 import dev.fayzullokh.roombooking.bot.enums.UserBotState;
 import dev.fayzullokh.roombooking.bot.utils.InlineKeyboardMarkupFactory;
 import dev.fayzullokh.roombooking.dtos.RoomDto;
+import dev.fayzullokh.roombooking.entities.Room;
 import dev.fayzullokh.roombooking.entities.User;
 import dev.fayzullokh.roombooking.enums.Role;
 import dev.fayzullokh.roombooking.enums.State;
+import dev.fayzullokh.roombooking.services.RoomService;
 import dev.fayzullokh.roombooking.services.UserService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -33,6 +36,7 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
     private final Map<Long, State> adminState = new HashMap<>();
     @Getter
     private final Map<Long, RoomDto> roomCreateMap = new HashMap<>();
+    private final RoomService roomService;
 
     @Override
     public BotApiMethod<Message> handle(Update update) {
@@ -60,7 +64,7 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
             case "/logout" -> handleLogoutMessage(chatId, languageCode);
             case "/admin" -> handleAdminMessage(chatId, languageCode);
             case "/profile" -> handleProfileMessage(chatId, languageCode);
-//            case "/admin" -> new SendMessage();
+            case "/rooms" -> handleRoomsMessage(chatId, languageCode);
             default -> {
                 SendMessage handledPlainText = handlePlainText(chatId, languageCode, text);
                 /*if (handledPlainText.getText().contains("Login successful.")) {
@@ -78,12 +82,37 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
         return sendMessage;
     }
 
+    private SendMessage handleRoomsMessage(long chatId, String languageCode) {
+        SendMessage sendMessage = new SendMessage();
+        Page<Room> rooms = roomService.getAllRooms(chatId, true);
+        sendMessage.setChatId(String.valueOf(chatId));
+        if (rooms.getTotalElements() == 0) {
+            sendMessage.setText("There are no rooms");
+            return sendMessage;
+        }
+        InlineKeyboardMarkup factoryRoomsList = inlineKeyboardMarkupFactory.createRoomsList(rooms, chatId, languageCode);
+        sendMessage.setReplyMarkup(factoryRoomsList);
+        sendMessage.setText("Rooms list: ");
+        return sendMessage;
+    }
+
     private SendMessage handleProfileMessage(long chatId, String languageCode) {
         User userByChatId = userService.getUserByChatId(chatId, true);
-        if (Objects.isNull(userByChatId)){
+        if (Objects.isNull(userByChatId)) {
             return new SendMessage(String.valueOf(chatId), "You are not logged in.\nSend /login to login");
         }
-
+        StringBuilder sb = new StringBuilder();
+        sb.append("Username:       ").append("<b>").append(userByChatId.getUsername()).append("\n").append("</b>")
+                .append("Name:           ").append("<b>").append(userByChatId.getFirstName() != null ? userByChatId.getFirstName() : "unknown").append("</b>").append(" ").append(userByChatId.getLastName() != null ? userByChatId.getLastName() : "").append("\n")
+                .append("Last name:      ").append("<b>").append(userByChatId.getLastName() != null ? userByChatId.getLastName() : "unknown").append("</b>").append("\n")
+                .append("Phone number:   ").append("<b>").append(userByChatId.getPhone() != null ? userByChatId.getPhone() : "unknown").append("</b>").append("\n")
+                .append("Email:          ").append("<b>").append(userByChatId.getEmail() != null ? userByChatId.getEmail() : "unknown").append("</b>").append("\n");
+        if (!userByChatId.getRole().equals(Role.USER)) {
+            sb.append("Role:           ").append("<b>").append(userByChatId.getRole().equals(Role.ADMIN) ? "Admin" : "Super admin").append("</b>").append("\n");
+        }
+        SendMessage sendMessage = new SendMessage(String.valueOf(chatId), sb.toString());
+        sendMessage.setParseMode("HTML");
+        return sendMessage;
     }
 
     private SendMessage handleAdminMessage(long chatId, String languageCode) {
@@ -108,8 +137,9 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
             return new SendMessage(String.valueOf(chatId), "You are not logged in");
         }
         InlineKeyboardMarkup keyboardMarkup = inlineKeyboardMarkupFactory.logout(languageCode);
-        SendMessage sendMessage = new SendMessage(String.valueOf(chatId), "Are you sure you want to log out?");
+        SendMessage sendMessage = new SendMessage(String.valueOf(chatId), "Are you sure you want to log out account <b>" + userByChatId.getUsername() + "</b>?");
         sendMessage.setReplyMarkup(keyboardMarkup);
+        sendMessage.setParseMode("HTML");
         return sendMessage;
     }
 
@@ -299,7 +329,16 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
 
 
     private SendMessage handleHelpMessage(long chatId, String languageCode) {
-        return new SendMessage(String.valueOf(chatId), "Help message");
+        String text = """
+                Here is the list of commands:\s
+
+                /start - start the bot
+                /help - get help
+                /login - login into account
+                /logout - logout from account
+                /profile - see profile
+                /rooms - see rooms""";
+        return new SendMessage(String.valueOf(chatId), text);
     }
 
     private SendMessage handleStartMessage(long chatId, Update update) {

@@ -132,19 +132,7 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
         }
 
         if (data.startsWith("ROOM_ID_#")) {
-            String[] split = data.split("#");
-            Long roomId = Long.parseLong(split[1]);
-            RoomDto roomDto = roomService.findById(roomId);
-            StringBuilder sb = new StringBuilder();
-            sb.append("Room number: ").append(roomDto.getRoomNumber()).append("\n");
-            sb.append("Description: ").append(roomDto.getDescription()).append("\n");
-            sb.append("Max seats: ").append(roomDto.getMaxSeats()).append("\n");
-            sb.append("Min seats: ").append(roomDto.getMinSeats()).append("\n");
-            /*sb.append("Open time: ").append(roomDto.getOpenTime()).append("\n");
-            sb.append("Close time: ").append(roomDto.getCloseTime()).append("\n");*/
-            InlineKeyboardMarkup keyboardMarkup = inlineKeyboardMarkupFactory.roomMenu(chatId, roomId, languageCode);
-            sendMessage.setText(sb.toString());
-            sendMessage.setReplyMarkup(keyboardMarkup);
+            handleSingleRoom(chatId, data, languageCode, sendMessage);
         } else if (data.contains("_PAGE#")) {
             String[] split = data.split("#");
             int page = Integer.parseInt(split[1]);
@@ -156,7 +144,40 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
             InlineKeyboardMarkup factoryRoomsList = inlineKeyboardMarkupFactory.createRoomsList(rooms, chatId, languageCode);
             sendMessage.setReplyMarkup(factoryRoomsList);
             sendMessage.setText("Rooms list: ");
+        }else if (data.startsWith("order#")){
+            String[] split = data.split("#");
+            Long roomId = Long.parseLong(split[1]);
+            RoomDto roomDto = roomService.findById(roomId);
+            if (roomDto == null) {
+                sendMessage.setText("Room not found");
+                return;
+            }
+            User userByChatId = userService.getUserByChatId(chatId, true);
+            if (Objects.isNull(userByChatId)) {
+                sendMessage.setText("User not found");
+                return;
+            }
+
         }
+    }
+
+    private void handleSingleRoom(long chatId, String data, String languageCode, SendMessage sendMessage) {
+        String[] split = data.split("#");
+        Long roomId = Long.parseLong(split[1]);
+        RoomDto roomDto = roomService.findById(roomId);
+        StringBuilder sb = new StringBuilder();
+        sb.append("Room number: ").append(roomDto.getRoomNumber()).append("\n");
+        sb.append("Description: ").append(roomDto.getDescription()).append("\n");
+        sb.append("Max seats: ").append(roomDto.getMaxSeats()).append("\n");
+        sb.append("Min seats: ").append(roomDto.getMinSeats()).append("\n");
+        User userByChatId = userService.getUserByChatId(chatId, true);
+        if (Objects.isNull(userByChatId)) {
+            sendMessage.setText("User not found");
+            return;
+        }
+        InlineKeyboardMarkup keyboardMarkup = inlineKeyboardMarkupFactory.roomMenu(chatId, roomId, languageCode, !userByChatId.getRole().equals(Role.USER));
+        sendMessage.setText(sb.toString());
+        sendMessage.setReplyMarkup(keyboardMarkup);
     }
 
     private void createRoomUpdateFields(long chatId, int messageId, String data, String languageCode, SendMessage sendMessage) {

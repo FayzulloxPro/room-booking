@@ -24,12 +24,8 @@ public class InlineKeyboardMarkupFactory {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> twoDimensionList = new ArrayList<>();
         List<InlineKeyboardButton> row = new ArrayList<>();
-        row.add(
-                getInlineButton("Yes",
-                        "logout"));
-        row.add(
-                getInlineButton("\uD83D\uDDD1",
-                        "delete"));
+        row.add(getInlineButton("Yes", "logout"));
+        row.add(getInlineButton("\uD83D\uDDD1", "delete"));
         twoDimensionList.add(row);
         inlineKeyboardMarkup.setKeyboard(twoDimensionList);
         return inlineKeyboardMarkup;
@@ -49,12 +45,8 @@ public class InlineKeyboardMarkupFactory {
         row.add(getInlineButton("Rooms", "rooms"));
         row.add(getInlineButton("Users", "users"));
         twoDimensionList.add(row);
-        twoDimensionList.add(List.of(
-                getInlineButton("Add room", "add_room")
-        ));
-        twoDimensionList.add(List.of(
-                getInlineButton("\uD83D\uDDD1", "delete")
-        ));
+        twoDimensionList.add(List.of(getInlineButton("Add room", "add_room")));
+        twoDimensionList.add(List.of(getInlineButton("\uD83D\uDDD1", "delete")));
         inlineKeyboardMarkup.setKeyboard(twoDimensionList);
         return inlineKeyboardMarkup;
     }
@@ -69,9 +61,7 @@ public class InlineKeyboardMarkupFactory {
         // Iterate through the rooms in the current page and create a button for each room
         for (Room room : roomPage.getContent()) {
             // Add the button to the current row
-            rowInline.add(
-                    getInlineButton(room.getRoomNumber(), "ROOM_ID_#" + room.getId())
-            );
+            rowInline.add(getInlineButton(room.getRoomNumber(), "ROOM_ID_#" + room.getId()));
             // If the row is full (3 buttons), add it to the list of rows and start a new row
             if (rowInline.size() == 3) {
                 rowsInline.add(rowInline);
@@ -87,18 +77,12 @@ public class InlineKeyboardMarkupFactory {
         List<InlineKeyboardButton> navigationRow = new ArrayList<>();
 
         if (roomPage.hasPrevious()) {
-            navigationRow.add(
-                    getInlineButton("⬅\uFE0F", "PREV_PAGE#" + (roomPage.getNumber() - 1))
-            );
+            navigationRow.add(getInlineButton("⬅\uFE0F", "PREV_PAGE#" + (roomPage.getNumber() - 1)));
         }
-        navigationRow.add(
-                getInlineButton("\uD83D\uDDD1", "delete")
-        );
+        navigationRow.add(getInlineButton("\uD83D\uDDD1", "delete"));
 
         if (roomPage.hasNext()) {
-            navigationRow.add(
-                    getInlineButton("➡\uFE0F", "NEXT_PAGE#" + (roomPage.getNumber() + 1))
-            );
+            navigationRow.add(getInlineButton("➡\uFE0F", "NEXT_PAGE#" + (roomPage.getNumber() + 1)));
         }
         // Add the navigation row to the list of rows
         rowsInline.add(navigationRow);
@@ -107,13 +91,28 @@ public class InlineKeyboardMarkupFactory {
         return markupInline;
     }
 
-    public InlineKeyboardMarkup roomMenu(long chatId, Long roomId, String languageCode) {
+    public InlineKeyboardMarkup roomMenu(long chatId, Long roomId, String languageCode, boolean isAdmin) {
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
 
         List<InlineKeyboardButton> rowInline = new ArrayList<>();
+        if (isAdmin) {
+            rowInline.add(getInlineButton("Room number", "update_room_number#" + roomId));
+            rowInline.add(getInlineButton("Room description", "update_room_description#" + roomId));
+            rowsInline.add(rowInline);
+            rowInline = new ArrayList<>();
+            ;
+            rowInline.add(getInlineButton("Max seats", "update_room_max_seats#" + roomId));
+            rowInline.add(getInlineButton("Min seats", "update_room_min_seats#" + roomId));
+            rowsInline.add(rowInline);
+        } else {
+            rowInline.add(getInlineButton("Reserve a room", "order#" + roomId));
+            rowsInline.add(rowInline);
+        }
+        rowInline = new ArrayList<>();
 
-
+        rowInline.add(getInlineButton("\uD83D\uDDD1", "delete"));
+        rowsInline.add(rowInline);
         markupInline.setKeyboard(rowsInline);
         return markupInline;
     }
@@ -124,28 +123,16 @@ public class InlineKeyboardMarkupFactory {
         List<InlineKeyboardButton> footerLine = new ArrayList<>();
         ArrayList<InlineKeyboardButton> updateButtons = new ArrayList<>();
 
-        updateButtons.add(
-                getInlineButton("Update room number", "update_create_room_number")
-        );
-        updateButtons.add(
-                getInlineButton("Update description", "update_create_room_description")
-        );
+        updateButtons.add(getInlineButton("Update room number", "update_create_room_number"));
+        updateButtons.add(getInlineButton("Update description", "update_create_room_description"));
         rowsInline.add(updateButtons);
         updateButtons = new ArrayList<>();
 
-        updateButtons.add(
-                getInlineButton("Update max seats", "update_create_room_max_seats")
-        );
-        updateButtons.add(
-                getInlineButton("Update min seats", "update_create_room_min_seats")
-        );
+        updateButtons.add(getInlineButton("Update max seats", "update_create_room_max_seats"));
+        updateButtons.add(getInlineButton("Update min seats", "update_create_room_min_seats"));
         rowsInline.add(updateButtons);
-        footerLine.add(
-                getInlineButton("Yes", "confirm_room_creation")
-        );
-        footerLine.add(
-                getInlineButton("No", "cancel_room_creation")
-        );
+        footerLine.add(getInlineButton("Yes", "confirm_room_creation"));
+        footerLine.add(getInlineButton("No", "cancel_room_creation"));
         rowsInline.add(footerLine);
         markupInline.setKeyboard(rowsInline);
         return markupInline;
