@@ -2,9 +2,11 @@ package dev.fayzullokh.roombooking.bot.bothandler;
 
 import dev.fayzullokh.roombooking.bot.utils.InlineKeyboardMarkupFactory;
 import dev.fayzullokh.roombooking.config.StateManagement;
+import dev.fayzullokh.roombooking.dtos.BookingDto;
 import dev.fayzullokh.roombooking.dtos.RoomDto;
 import dev.fayzullokh.roombooking.entities.Room;
 import dev.fayzullokh.roombooking.entities.User;
+import dev.fayzullokh.roombooking.enums.BookingState;
 import dev.fayzullokh.roombooking.enums.Role;
 import dev.fayzullokh.roombooking.enums.State;
 import dev.fayzullokh.roombooking.services.RoomService;
@@ -33,7 +35,6 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
     private final UserService userService;
     private final RoomService roomService;
 
-    private final StateManagement stateManagement;
 
     @Override
     public BotApiMethod<Message> handle(Update update) {
@@ -125,7 +126,8 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
     }
 
     private void handleOtherCallBack(long chatId, int messageId, String data, String languageCode, SendMessage sendMessage) {
-
+        sendMessage.setParseMode("HTML");
+        sendMessage.setChatId(String.valueOf(chatId));
         if (data.startsWith("update_create_room")) {
             createRoomUpdateFields(chatId, messageId, data, languageCode, sendMessage);
             return;
@@ -144,7 +146,7 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
             InlineKeyboardMarkup factoryRoomsList = inlineKeyboardMarkupFactory.createRoomsList(rooms, chatId, languageCode);
             sendMessage.setReplyMarkup(factoryRoomsList);
             sendMessage.setText("Rooms list: ");
-        }else if (data.startsWith("order#")){
+        } else if (data.startsWith("order#")) {
             String[] split = data.split("#");
             Long roomId = Long.parseLong(split[1]);
             RoomDto roomDto = roomService.findById(roomId);
@@ -152,12 +154,13 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
                 sendMessage.setText("Room not found");
                 return;
             }
-            User userByChatId = userService.getUserByChatId(chatId, true);
-            if (Objects.isNull(userByChatId)) {
-                sendMessage.setText("User not found");
-                return;
-            }
-
+            Map<Long, BookingState> bookingStateMap = messageHandler.getBookingStateMap();
+            bookingStateMap.put(chatId, BookingState.ENTER_BEGINNING_TIME);
+            Map<Long, BookingDto> bookingDtoMap = messageHandler.getBookingDtoMap();
+            BookingDto bookingDto = new BookingDto();
+            bookingDto.setRoomId(roomId);
+            bookingDtoMap.put(chatId, bookingDto);
+            sendMessage.setText("Please enter the beginning time for the booking in <b>HH:mm</b> format (24-hour clock):");
         }
     }
 

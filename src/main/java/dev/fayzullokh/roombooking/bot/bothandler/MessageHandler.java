@@ -2,9 +2,11 @@ package dev.fayzullokh.roombooking.bot.bothandler;
 
 import dev.fayzullokh.roombooking.bot.enums.UserBotState;
 import dev.fayzullokh.roombooking.bot.utils.InlineKeyboardMarkupFactory;
+import dev.fayzullokh.roombooking.dtos.BookingDto;
 import dev.fayzullokh.roombooking.dtos.RoomDto;
 import dev.fayzullokh.roombooking.entities.Room;
 import dev.fayzullokh.roombooking.entities.User;
+import dev.fayzullokh.roombooking.enums.BookingState;
 import dev.fayzullokh.roombooking.enums.Role;
 import dev.fayzullokh.roombooking.enums.State;
 import dev.fayzullokh.roombooking.services.RoomService;
@@ -19,6 +21,9 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -28,7 +33,10 @@ import java.util.Objects;
 public class MessageHandler implements Handler<BotApiMethod<Message>> {
 
     private final Map<Long, UserBotState> usersState = new HashMap<>();
-
+    @Getter
+    private final Map<Long, BookingState> bookingStateMap = new HashMap<>();
+    @Getter
+    private final Map<Long, BookingDto> bookingDtoMap = new HashMap<>();
 
     private final InlineKeyboardMarkupFactory inlineKeyboardMarkupFactory;
     private final UserService userService;
@@ -65,6 +73,7 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
             case "/admin" -> handleAdminMessage(chatId, languageCode);
             case "/profile" -> handleProfileMessage(chatId, languageCode);
             case "/rooms" -> handleRoomsMessage(chatId, languageCode);
+            case "/cancel" -> handleCancelMessage(chatId, languageCode);
             default -> {
                 SendMessage handledPlainText = handlePlainText(chatId, languageCode, text);
                 /*if (handledPlainText.getText().contains("Login successful.")) {
@@ -79,6 +88,23 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
                 yield handledPlainText;
             }
         };
+        return sendMessage;
+    }
+
+    private SendMessage handleCancelMessage(long chatId, String languageCode) {
+        UserBotState userBotState = usersState.remove(chatId);
+        BookingState bookingState = bookingStateMap.remove(chatId);
+        BookingDto remove = bookingDtoMap.remove(chatId);
+        State state = adminState.remove(chatId);
+        RoomDto roomDto = roomCreateMap.remove(chatId);
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(String.valueOf(chatId));
+        if (!Objects.isNull(userBotState) || !Objects.isNull(bookingState) ||
+                !Objects.isNull(remove) || !Objects.isNull(state) || !Objects.isNull(roomDto)) {
+            sendMessage.setText("Operation canceled");
+            return sendMessage;
+        }
+        sendMessage.setText("You are not doing any operation now");
         return sendMessage;
     }
 
@@ -179,7 +205,6 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
                     handleInDescription(chatId, text, sendMessage, false);
                 }
                 case MAX_SEATS -> {
-
                     handleMaxSeats(chatId, text, sendMessage, false);
                 }
                 case MIN_SEATS -> {
@@ -199,7 +224,7 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
                     handleMinSeats(chatId, text, sendMessage, true);
                 }
                 default -> {
-                    sendMessage.setText("Something went wrong");
+                    return handleAnotherTypeState(chatId, languageCode, text);
                 }
             }
             return sendMessage;
@@ -207,6 +232,56 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
         return null;
     }
 
+    private SendMessage handleAnotherTypeState(long chatId, String languageCode, String text) {
+        BookingState bookingState = bookingStateMap.get(chatId);
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setParseMode("HTML");
+        sendMessage.setChatId(String.valueOf(chatId));
+        switch (bookingState) {
+            case ENTER_BEGINNING_TIME -> {
+                if (isValidTimeFormat(text)) {
+                    BookingDto bookingDto = bookingDtoMap.get(chatId);
+                    bookingDto.setStartTime(LocalTime.parse(text));
+                    sendMessage.setText("Please enter the ending time for the booking (HH:mm):");
+                    bookingStateMap.put(chatId, BookingState.ENTER_ENDING_TIME);
+                } else {
+                    sendMessage.setText("Invalid time format. Please enter the beginning time (HH:mm):");
+                }
+            }
+            case ENTER_ENDING_TIME -> {
+                if (isValidTimeFormat(text)) {
+                    BookingDto bookingDto = bookingDtoMap.get(chatId);
+                    bookingDto.setStartTime(LocalTime.parse(text));
+                    bookingStateMap.put(chatId, BookingState.DATE);
+                    sendMessage.setText("Booking confirmed. Thank you!");
+                } else {
+                    sendMessage.setText("Invalid time format. Please enter the ending time (HH:mm):");
+                }
+            }
+            case DATE -> {
+                try {
+                    LocalDate date = LocalDate.parse(text);
+                    BookingDto bookingDto = bookingDtoMap.get(chatId);
+                    bookingDto.setDate(date);
+
+                } catch (Exception e) {
+                    sendMessage.setText("Date is incorrect! Send again: ");
+                }
+            }
+            default -> new SendMessage(String.valueOf(chatId), "Unknown command");
+        }
+
+        return sendMessage;
+    }
+
+    private boolean isValidTimeFormat(String time) {
+        try {
+            LocalTime.parse(time);
+            return true;
+        } catch (DateTimeParseException e) {
+            return false;
+        }
+    }
 
     private void handleMinSeats(long chatId, String text, SendMessage sendMessage, boolean isSingle) {
         try {
@@ -337,7 +412,8 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
                 /login - login into account
                 /logout - logout from account
                 /profile - see profile
-                /rooms - see rooms""";
+                /rooms - see rooms
+                /cancel - cancel the operation""";
         return new SendMessage(String.valueOf(chatId), text);
     }
 
