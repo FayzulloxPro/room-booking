@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.util.ArrayList;
@@ -136,5 +137,17 @@ public class InlineKeyboardMarkupFactory {
         rowsInline.add(footerLine);
         markupInline.setKeyboard(rowsInline);
         return markupInline;
+    }
+
+    public ReplyKeyboard createBookingConfirmation(long chatId) {
+
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> twoDimensionList = new ArrayList<>();
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        row.add(getInlineButton("Confirm", "confirm_booking"));
+        row.add(getInlineButton("Cancel", "cancel_booking"));
+        twoDimensionList.add(row);
+        inlineKeyboardMarkup.setKeyboard(twoDimensionList);
+        return inlineKeyboardMarkup;
     }
 }

@@ -58,7 +58,6 @@ public class Bot extends TelegramLongPollingBot {
     }
 
 
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
     private void send(DeleteMessage deleteMessage) {

@@ -11,8 +11,10 @@ import dev.fayzullokh.roombooking.enums.Role;
 import dev.fayzullokh.roombooking.enums.State;
 import dev.fayzullokh.roombooking.services.RoomService;
 import dev.fayzullokh.roombooking.services.UserService;
+import dev.fayzullokh.roombooking.utils.StringUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -23,6 +25,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,6 +48,12 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
     @Getter
     private final Map<Long, RoomDto> roomCreateMap = new HashMap<>();
     private final RoomService roomService;
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+
+    @Value("${telegram.bot.username}")
+    private String botUsername;
+
 
     @Override
     public BotApiMethod<Message> handle(Update update) {
@@ -229,7 +238,7 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
             }
             return sendMessage;
         }
-        return null;
+        return handleAnotherTypeState(chatId, languageCode, text);
     }
 
     private SendMessage handleAnotherTypeState(long chatId, String languageCode, String text) {
@@ -251,26 +260,49 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
             case ENTER_ENDING_TIME -> {
                 if (isValidTimeFormat(text)) {
                     BookingDto bookingDto = bookingDtoMap.get(chatId);
-                    bookingDto.setStartTime(LocalTime.parse(text));
+                    bookingDto.setEndTime(LocalTime.parse(text));
                     bookingStateMap.put(chatId, BookingState.DATE);
-                    sendMessage.setText("Booking confirmed. Thank you!");
+                    sendMessage.setText("Enter the date in format <b>dd/MM/yyyy</b>(e.g. 25/05/2023):");
                 } else {
                     sendMessage.setText("Invalid time format. Please enter the ending time (HH:mm):");
                 }
             }
             case DATE -> {
                 try {
-                    LocalDate date = LocalDate.parse(text);
+                    LocalDate date = LocalDate.parse(text, formatter);
                     BookingDto bookingDto = bookingDtoMap.get(chatId);
                     bookingDto.setDate(date);
-
+                    bookingStateMap.put(chatId, BookingState.COMMENT);
+                    sendMessage.setText("Leave a comment for the booking:");
                 } catch (Exception e) {
                     sendMessage.setText("Date is incorrect! Send again: ");
                 }
             }
+            case COMMENT -> {
+                BookingDto bookingDto = bookingDtoMap.get(chatId);
+                bookingDto.setComment(text);
+                String code = StringUtils.generateCode();
+                bookingDto.setCode(code);
+                try {
+
+                    String roomNumber = roomService.getRoomById(bookingDto.getRoomId()).getRoomNumber();
+                    String sb = "Do you confirm these data?\n\nBooking details: \n\n" +
+                            "Room number: " + roomNumber + "\n" +
+                            "Start time: " + bookingDto.getStartTime() + "\n" +
+                            "End time: " + bookingDto.getEndTime() + "\n" +
+                            "Date: " + bookingDto.getDate() + "\n" +
+                            "Comment: " + bookingDto.getComment() + "\n" +
+                            /*"Code: " + bookingDto.getCode() + "\n" +*/
+                            "Note: <b>You can cancel the booking until 15 minutes before the start time and as you are creating " +
+                            "a booking you will be considered responsible for the room during the booking time.</b>";
+                    sendMessage.setText(sb);
+                    sendMessage.setReplyMarkup(inlineKeyboardMarkupFactory.createBookingConfirmation(chatId));
+                } catch (Exception e) {
+                    sendMessage.setText("Something went wrong. Please try again later.");
+                }
+            }
             default -> new SendMessage(String.valueOf(chatId), "Unknown command");
         }
-
         return sendMessage;
     }
 

@@ -82,4 +82,8 @@ public class RoomService {
     public Page<Room> getAllRooms(Long chatId, boolean isTelegramRequest) {
         return getAllRooms(DEFAULT_PAGE, DEFAULT_SIZE, chatId, isTelegramRequest);
     }
+
+    public Room getRoomById(Long roomId) {
+        return roomRepository.findById(roomId).orElseThrow(() -> new NotFoundException("Room is not found with id: " + roomId));
+    }
 }
