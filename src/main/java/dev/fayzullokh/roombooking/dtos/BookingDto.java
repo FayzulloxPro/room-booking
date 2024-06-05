@@ -1,5 +1,6 @@
 package dev.fayzullokh.roombooking.dtos;
 
+import jakarta.validation.constraints.Future;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -11,10 +12,9 @@ import java.time.LocalTime;
 @Getter
 @ToString
 public class BookingDto {
+    private Long roomId;
     private LocalTime startTime;
     private LocalTime endTime;
     private LocalDate date;
-    private Long roomId;
-    private String code;
     private String comment;
 }

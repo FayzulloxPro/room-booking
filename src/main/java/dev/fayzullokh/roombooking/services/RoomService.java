@@ -84,6 +84,6 @@ public class RoomService {
     }
 
     public Room getRoomById(Long roomId) {
-        return roomRepository.findById(roomId).orElseThrow(() -> new NotFoundException("Room is not found with id: " + roomId));
+        return roomRepository.findById(roomId).orElse(null);
     }
 }

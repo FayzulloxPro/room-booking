@@ -282,7 +282,6 @@ public class MessageHandler implements Handler<BotApiMethod<Message>> {
                 BookingDto bookingDto = bookingDtoMap.get(chatId);
                 bookingDto.setComment(text);
                 String code = StringUtils.generateCode();
-                bookingDto.setCode(code);
                 try {
 
                     String roomNumber = roomService.getRoomById(bookingDto.getRoomId()).getRoomNumber();

@@ -1,17 +1,20 @@
 package dev.fayzullokh.roombooking.bot.bothandler;
 
 import dev.fayzullokh.roombooking.bot.utils.InlineKeyboardMarkupFactory;
-import dev.fayzullokh.roombooking.config.StateManagement;
 import dev.fayzullokh.roombooking.dtos.BookingDto;
 import dev.fayzullokh.roombooking.dtos.RoomDto;
+import dev.fayzullokh.roombooking.entities.Reservation;
 import dev.fayzullokh.roombooking.entities.Room;
 import dev.fayzullokh.roombooking.entities.User;
 import dev.fayzullokh.roombooking.enums.BookingState;
 import dev.fayzullokh.roombooking.enums.Role;
 import dev.fayzullokh.roombooking.enums.State;
+import dev.fayzullokh.roombooking.exceptions.CustomIllegalArgumentException;
+import dev.fayzullokh.roombooking.services.ReservationService;
 import dev.fayzullokh.roombooking.services.RoomService;
 import dev.fayzullokh.roombooking.services.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -34,7 +37,10 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
     private final InlineKeyboardMarkupFactory inlineKeyboardMarkupFactory;
     private final UserService userService;
     private final RoomService roomService;
+    private final ReservationService reservationService;
 
+    @Value("${telegram.bot.username}")
+    private String botUsername;
 
     @Override
     public BotApiMethod<Message> handle(Update update) {
@@ -53,6 +59,7 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
             sendMessage.setText("You are not logged in");
             return sendMessage;
         }
+        sendMessage.setParseMode("HTML");
         switch (data) {
             case "logout" -> {
                 user = userService.logout(chatId, true);
@@ -118,11 +125,60 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
                 sendMessage.setText("Creating room canceled ");
                 return sendMessage;
             }
+            case "confirm_booking" -> {
+                createBooking(chatId, messageId, data, languageCode, sendMessage);
+            }
+            case "cancel_booking" -> {
+                cancelBooking(chatId, messageId, data, languageCode, sendMessage);
+            }
             default -> {
                 handleOtherCallBack(chatId, messageId, data, languageCode, sendMessage);
             }
         }
         return sendMessage;
+    }
+
+    private void createBooking(long chatId, int messageId, String data, String languageCode, SendMessage sendMessage) {
+        Map<Long, BookingDto> bookingDtoMap = messageHandler.getBookingDtoMap();
+        BookingDto bookingDto = bookingDtoMap.get(chatId);
+        if (Objects.isNull(bookingDto)) {
+            sendMessage.setText("You're not in booking process");
+            return;
+        }
+        bookingDtoMap.remove(chatId);
+        sendMessage.setText("Booking created successfully");
+        try {
+            Reservation reservation = reservationService.create(bookingDto, chatId);
+            String string = "Booking created success fully. \n\n" +
+                    "Room number: " + reservation.getRoom().getRoomNumber() + "\n" +
+                    "Date: " + reservation.getDate() + "\n" +
+                    "Start time: " + reservation.getStartTime() + "\n" +
+                    "End time: " + reservation.getEndTime() + "\n" +
+                    "Your referral link:" + generateReferralLink(String.valueOf(reservation.getId()))+
+                    "\nBy this link you can invite other users to join this booking\n\n\n" +
+                    "<b>Note: Since the minimum number of people is "+reservation.getRoom().getMinSeats()+" so your reservation request can not be approved by admins until number of people joined this booking reaches it.\n" +
+                    "As number of people won't exceed from "+reservation.getRoom().getMaxSeats()+" since maximum capacity of this room.</b>";
+            sendMessage.setText(string);
+        } catch (CustomIllegalArgumentException e) {
+            sendMessage.setText(e.getMessage());
+        } catch (Exception e) {
+            sendMessage.setText("Error while creating booking. Try again");
+        }
+    }
+
+    public String generateReferralLink(String code) {
+        return "https://t.me/" + botUsername + "?start=" + code;
+    }
+
+    private void cancelBooking(long chatId, int messageId, String data, String languageCode, SendMessage sendMessage) {
+        Map<Long, BookingDto> bookingDtoMap = messageHandler.getBookingDtoMap();
+        BookingDto bookingDto = bookingDtoMap.get(chatId);
+        if (Objects.isNull(bookingDto)) {
+            sendMessage.setText("You're not in booking process");
+            return;
+        }
+        bookingDtoMap.remove(chatId);
+        sendMessage.setText("Booking canceled");
     }
 
     private void handleOtherCallBack(long chatId, int messageId, String data, String languageCode, SendMessage sendMessage) {
@@ -221,7 +277,8 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
 //            case "admin_users_list" -> {
 //                return new SendDocument();
 //            }
-*//*
+*/
+    /*
             case "admin_unblock_user" -> {
 
             }

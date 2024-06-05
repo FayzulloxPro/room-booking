@@ -1,9 +1,11 @@
 package dev.fayzullokh.roombooking.entities;
 
+import dev.fayzullokh.roombooking.enums.ReservationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Getter
@@ -15,14 +17,15 @@ import java.util.List;
 @Entity(name = "reservations")
 public class Reservation extends BaseEntityAudit {
 
-    @Column(nullable = false, name = "seat_number")
-    private short seatNumber;
 
     @Column(nullable = false, name = "reservation_start_time")
-    private LocalDateTime reservationStartTime;
+    private LocalTime startTime;
 
     @Column(nullable = false, name = "reservation_end_time")
-    private LocalDateTime reservationEndTime;
+    private LocalTime endTime;
+
+    @Column(nullable = false, name = "date")
+    private LocalDate date;
 
     @JoinColumn(nullable = false, name = "responsible_user_id")
     @ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
@@ -36,4 +39,9 @@ public class Reservation extends BaseEntityAudit {
 
     @Column(nullable = false, columnDefinition = "boolean default false", name = "is_expired")
     private boolean isExpired;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, name = "status")
+    private ReservationStatus status;
 }
