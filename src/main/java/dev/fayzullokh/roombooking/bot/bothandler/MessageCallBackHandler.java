@@ -154,7 +154,8 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
                     "Date: " + reservation.getDate() + "\n" +
                     "Start time: " + reservation.getStartTime() + "\n" +
                     "End time: " + reservation.getEndTime() + "\n" +
-                    "Your referral link:" + generateReferralLink(String.valueOf(reservation.getId()))+
+                    "" +
+                    "Your referral link: " + generateReferralLink(String.valueOf(reservation.getId()))+
                     "\nBy this link you can invite other users to join this booking\n\n\n" +
                     "<b>Note: Since the minimum number of people is "+reservation.getRoom().getMinSeats()+" so your reservation request can not be approved by admins until number of people joined this booking reaches it.\n" +
                     "As number of people won't exceed from "+reservation.getRoom().getMaxSeats()+" since maximum capacity of this room.</b>";
