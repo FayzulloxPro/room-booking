@@ -1,5 +1,6 @@
 package dev.fayzullokh.roombooking.bot.utils;
 
+import dev.fayzullokh.roombooking.entities.Reservation;
 import dev.fayzullokh.roombooking.entities.Room;
 import dev.fayzullokh.roombooking.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -92,7 +93,7 @@ public class InlineKeyboardMarkupFactory {
         return markupInline;
     }
 
-    public InlineKeyboardMarkup roomMenu(long chatId, Long roomId, String languageCode, boolean isAdmin) {
+    public InlineKeyboardMarkup roomMenu(long chatId, Long roomId, String languageCode, boolean isAdmin, List<Reservation> reservations) {
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
 
@@ -109,6 +110,7 @@ public class InlineKeyboardMarkupFactory {
         } else {
             rowInline.add(getInlineButton("Reserve a room", "order#" + roomId));
             rowsInline.add(rowInline);
+
         }
         rowInline = new ArrayList<>();
 

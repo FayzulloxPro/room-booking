@@ -24,6 +24,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -140,6 +141,7 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
 
     private void createBooking(long chatId, int messageId, String data, String languageCode, SendMessage sendMessage) {
         Map<Long, BookingDto> bookingDtoMap = messageHandler.getBookingDtoMap();
+        messageHandler.getBookingStateMap().remove(chatId);
         BookingDto bookingDto = bookingDtoMap.get(chatId);
         if (Objects.isNull(bookingDto)) {
             sendMessage.setText("You're not in booking process");
@@ -155,10 +157,10 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
                     "Start time: " + reservation.getStartTime() + "\n" +
                     "End time: " + reservation.getEndTime() + "\n" +
                     "" +
-                    "Your referral link: " + generateReferralLink(String.valueOf(reservation.getId()))+
+                    "Your referral link: " + generateReferralLink(String.valueOf(reservation.getId())) +
                     "\nBy this link you can invite other users to join this booking\n\n\n" +
-                    "<b>Note: Since the minimum number of people is "+reservation.getRoom().getMinSeats()+" so your reservation request can not be approved by admins until number of people joined this booking reaches it.\n" +
-                    "As number of people won't exceed from "+reservation.getRoom().getMaxSeats()+" since maximum capacity of this room.</b>";
+                    "<b>Note: Since the minimum number of people is " + reservation.getRoom().getMinSeats() + " so your reservation request can not be approved by admins until number of people joined this booking reaches it.\n" +
+                    "As number of people won't exceed from " + reservation.getRoom().getMaxSeats() + " since maximum capacity of this room.</b>";
             sendMessage.setText(string);
         } catch (CustomIllegalArgumentException e) {
             sendMessage.setText(e.getMessage());
@@ -235,7 +237,16 @@ public class MessageCallBackHandler implements Handler<BotApiMethod<Message>> {
             sendMessage.setText("User not found");
             return;
         }
-        InlineKeyboardMarkup keyboardMarkup = inlineKeyboardMarkupFactory.roomMenu(chatId, roomId, languageCode, !userByChatId.getRole().equals(Role.USER));
+        List<Reservation> reservations = reservationService.getSingleRoomUpcomingReservations(roomId, userByChatId);
+        InlineKeyboardMarkup keyboardMarkup = inlineKeyboardMarkupFactory.roomMenu(chatId, roomId, languageCode, !userByChatId.getRole().equals(Role.USER), reservations);
+        if (!reservations.isEmpty()){
+            sb.append("Upcoming reservations for this room: ").append("\n");
+            reservations.forEach(reservation -> {
+                sb.append("Beginning time: ").append(reservation.getStartTime());
+                sb.append("Ending time: ").append(reservation.getEndTime());
+                sb.append("Date: ").append(reservation.getDate()).append("\n");
+            });
+        }
         sendMessage.setText(sb.toString());
         sendMessage.setReplyMarkup(keyboardMarkup);
     }

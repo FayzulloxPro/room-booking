@@ -14,7 +14,8 @@ import java.util.List;
 @AllArgsConstructor
 @ToString
 @Builder
-@Entity(name = "reservations")
+@Entity
+@Table(name = "reservations")
 public class Reservation extends BaseEntityAudit {
 
 
